@@ -9,12 +9,12 @@ protocol Scene {
 
     var viewController: UIViewController { get }
 
-    func embed(_ children: [Scene])
+    func embed(_ children: [Scene], customData: [AnyHashable: AnyHashable]?)
 }
 
 extension Scene {
 
-    func embed(_ children: [Scene]) { }
+    func embed(_ children: [Scene], customData: [AnyHashable: AnyHashable]?) { }
 }
 
 protocol SceneModel {
@@ -22,7 +22,7 @@ protocol SceneModel {
     var sceneName: String { get set }
     var children: [SceneModel] { get set }
     var presented: SceneModel? { get set }
-    var customData: [String: Any]? { get set }
+    var customData: [AnyHashable: AnyHashable]? { get set }
 }
 
 struct SceneModelImpl: SceneModel {
@@ -30,12 +30,12 @@ struct SceneModelImpl: SceneModel {
     var sceneName: String
     var children: [SceneModel]
     var presented: SceneModel?
-    var customData: [String: Any]?
+    var customData: [AnyHashable: AnyHashable]?
 
     init(sceneName: String,
          children: [SceneModel] = [],
          presented: SceneModel? = nil,
-         customData: [String: Any]? = nil) {
+         customData: [AnyHashable: AnyHashable]? = nil) {
         self.sceneName = sceneName
         self.children = children
         self.presented = presented
@@ -55,7 +55,7 @@ class StackScene: Scene {
         self.navigationController = navigationController
     }
 
-    func embed(_ children: [Scene]) {
+    func embed(_ children: [Scene], customData: [AnyHashable: AnyHashable]?) {
         let childViewControllers = children.map { $0.viewController }
         navigationController.setViewControllers(childViewControllers, animated: false)
     }
@@ -73,7 +73,7 @@ class TabBarScene: Scene {
         self.tabBarController = tabBarController
     }
 
-    func embed(_ children: [Scene]) {
+    func embed(_ children: [Scene], customData: [AnyHashable: AnyHashable]?) {
         let childViewControllers = children.map { $0.viewController }
         tabBarController.setViewControllers(childViewControllers, animated: true)
     }

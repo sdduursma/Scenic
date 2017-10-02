@@ -7,12 +7,15 @@ class MockScene: Scene {
 
     private(set) var children: [Scene] = []
 
+    private(set) var customData: [AnyHashable: AnyHashable]?
+
     init(viewController: UIViewController = UIViewController()) {
         self.viewController = viewController
     }
 
-    func embed(_ children: [Scene]) {
+    func embed(_ children: [Scene], customData: [AnyHashable: AnyHashable]?) {
         self.children = children
+        self.customData = customData
     }
 }
 

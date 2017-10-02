@@ -11,7 +11,7 @@ class SceneTests: XCTestCase {
         let scene1 = SingleScene(viewController: UIViewController())
 
         // when
-        stackScene.embed([scene0, scene1])
+        stackScene.embed([scene0, scene1], customData: nil)
 
         // then
         XCTAssertEqual(navigationController.viewControllers, [scene0.viewController, scene1.viewController])

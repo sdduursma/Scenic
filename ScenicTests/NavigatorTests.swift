@@ -15,13 +15,19 @@ class NavigatorTests: XCTestCase {
         let navigator = NavigatorImpl(window: window, sceneFactory: sceneFactory)
         let rootSceneModel1 = SceneModelImpl(sceneName: "red",
                                              children: [SceneModelImpl(sceneName: "orange",
-                                                                       children: [SceneModelImpl(sceneName: "blue")])])
+                                                                       children: [SceneModelImpl(sceneName: "blue")])],
+                                             customData: ["foo": "bar"])
 
         // when
         navigator.set(rootSceneModel: rootSceneModel1)
 
         // then
         XCTAssertTrue(scenes["red"]!.children[0] as! MockScene === scenes["orange"]!)
+        guard let redSceneCustomData = scenes["red"]!.customData else {
+            XCTFail()
+            return
+        }
+        XCTAssertEqual(redSceneCustomData, ["foo": "bar"])
         XCTAssertTrue(scenes["orange"]!.children[0] as! MockScene === scenes["blue"]!)
     }
 

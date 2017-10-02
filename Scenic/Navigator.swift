@@ -29,7 +29,7 @@ class NavigatorImpl: Navigator {
                 children.append(childScene)
             }
         }
-        scene.embed(children)
+        scene.embed(children, customData: sceneModel.customData)
         return scene
     }
 }
