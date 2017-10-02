@@ -523,7 +523,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 15F5D0D6FBC9EB0657DB4131 /* Pods-ScenicTests.debug.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = GL587LJC4J;
 				INFOPLIST_FILE = ScenicTests/Info.plist;
@@ -539,7 +538,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 5DF28EC5C794F045098F5368 /* Pods-ScenicTests.release.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = GL587LJC4J;
 				INFOPLIST_FILE = ScenicTests/Info.plist;
