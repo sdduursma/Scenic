@@ -25,7 +25,7 @@ class SceneTests: XCTestCase {
         let scene1 = SingleScene(viewController: UIViewController())
 
         // when
-        tabBarScene.embed([scene0, scene1])
+        tabBarScene.embed([scene0, scene1], customData: ["selectedIndex": 1])
 
         // then
         guard let childViewControllers = tabBarController.viewControllers else {
@@ -33,5 +33,21 @@ class SceneTests: XCTestCase {
             return
         }
         XCTAssertEqual(childViewControllers, [scene0.viewController, scene1.viewController])
+        XCTAssertEqual(tabBarController.selectedIndex, 1)
+    }
+
+    func testTabBarSceneSelectsDefaultIndex() {
+        // given
+        let tabBarController = UITabBarController()
+        let tabBarScene = TabBarScene(tabBarController: tabBarController)
+        let scene0 = SingleScene(viewController: UIViewController())
+        let scene1 = SingleScene(viewController: UIViewController())
+
+        // when
+        tabBarScene.embed([scene0, scene1], customData: ["selectedIndex": 1])
+        tabBarScene.embed([scene0, scene1], customData: nil)
+
+        // then
+        XCTAssertEqual(tabBarController.selectedIndex, 0)
     }
 }

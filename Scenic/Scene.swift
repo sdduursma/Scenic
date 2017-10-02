@@ -76,6 +76,7 @@ class TabBarScene: Scene {
     func embed(_ children: [Scene], customData: [AnyHashable: AnyHashable]?) {
         let childViewControllers = children.map { $0.viewController }
         tabBarController.setViewControllers(childViewControllers, animated: true)
+        tabBarController.selectedIndex = customData?["selectedIndex"] as? Int ?? 0
     }
 }
 
