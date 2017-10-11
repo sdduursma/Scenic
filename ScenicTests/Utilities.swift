@@ -3,6 +3,8 @@ import UIKit
 
 class MockScene: Scene {
 
+    var sceneRef: String?
+
     let viewController: UIViewController
 
     private(set) var children: [Scene] = []
@@ -23,11 +25,20 @@ class MockSceneFactory: SceneFactory {
 
     private let scenes: [String: Scene]
 
-    init(scenes: [String: Scene]) {
+    init(scenes: [String: Scene] = [:]) {
         self.scenes = scenes
     }
 
     func makeScene(for sceneName: String) -> Scene? {
         return scenes[sceneName]
+    }
+}
+
+class MockEventDelegate: EventDelegate {
+
+    private(set) var sentEvents: [NavigationEvent] = []
+
+    func sendEvent(_ event: NavigationEvent) {
+        sentEvents.append(event)
     }
 }

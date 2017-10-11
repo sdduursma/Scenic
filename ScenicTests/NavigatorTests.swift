@@ -44,5 +44,19 @@ class NavigatorTests: XCTestCase {
         // then
         XCTAssertEqual(window.rootViewController, rootScene.viewController)
     }
-}
 
+    func testWatchEvents() {
+        let navigator = NavigatorImpl(window: UIWindow(), sceneFactory: MockSceneFactory())
+        let eventExpectation = expectation(description: "should see event")
+        var event: NavigationEvent?
+        navigator.addEventWatcher { anEvent in
+            event = anEvent
+            eventExpectation.fulfill()
+        }
+
+        navigator.sendEvent(NavigationEvent(sceneRef: "a352afa", eventName: "TabBarScene/didSelectIndex"))
+
+        waitForExpectations(timeout: 10, handler: nil)
+        XCTAssertEqual(event?.sceneRef, "a352afa")
+    }
+}

@@ -50,4 +50,27 @@ class SceneTests: XCTestCase {
         // then
         XCTAssertEqual(tabBarController.selectedIndex, 0)
     }
+
+    func testTabBarSceneSelectIndex() {
+        // given
+        let tabBarController = UITabBarController()
+        let tabBarScene = TabBarScene(tabBarController: tabBarController)
+        let sceneRef = "ac21c1"
+        tabBarScene.sceneRef = sceneRef
+        let eventDelegate = MockEventDelegate()
+        tabBarScene.eventDelegate = eventDelegate
+        let scene0 = SingleScene(viewController: UIViewController())
+        let viewController1 = UIViewController()
+        let scene1 = SingleScene(viewController: viewController1)
+        tabBarScene.embed([scene0, scene1], customData: nil)
+
+        // when
+        let shouldSelect = tabBarScene.tabBarController(tabBarController, shouldSelect: viewController1)
+
+        // then
+        XCTAssertFalse(shouldSelect)
+        XCTAssertTrue(eventDelegate.sentEvents.contains(NavigationEvent(sceneRef: sceneRef,
+                                                                        eventName: "TabBarScene/didSelectIndex",
+                                                                        customData: ["selectedIndex": 1])))
+    }
 }
