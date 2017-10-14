@@ -93,6 +93,10 @@ public class TabBarScene: NSObject, Scene, UITabBarControllerDelegate {
 
     public init(tabBarController: UITabBarController) {
         self.tabBarController = tabBarController
+
+        super.init()
+
+        tabBarController.delegate = self
     }
 
     public func embed(_ children: [Scene], customData: [AnyHashable: AnyHashable]?) {

@@ -73,4 +73,15 @@ class SceneTests: XCTestCase {
                                                                         eventName: "TabBarScene/didSelectIndex",
                                                                         customData: ["selectedIndex": 1])))
     }
+
+    func testTabBarSceneAssignsDelegate() {
+        // given
+        let tabBarController = UITabBarController()
+
+        // when
+        let tabBarScene = TabBarScene(tabBarController: tabBarController)
+
+        // then
+        XCTAssertNotNil(tabBarController.delegate)
+    }
 }
