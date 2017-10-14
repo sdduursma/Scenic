@@ -1,11 +1,11 @@
 import UIKit
 
-protocol SceneFactory {
+public protocol SceneFactory {
 
     func makeScene(for sceneName: String) -> Scene?
 }
 
-protocol Scene {
+public protocol Scene {
 
     var sceneRef: String? { get set }
 
@@ -18,17 +18,17 @@ protocol Scene {
 
 extension Scene {
 
-    var eventDelegate: EventDelegate? {
+    public var eventDelegate: EventDelegate? {
         get {
             return nil
         }
         set { }
     }
 
-    func embed(_ children: [Scene], customData: [AnyHashable: AnyHashable]?) { }
+    public func embed(_ children: [Scene], customData: [AnyHashable: AnyHashable]?) { }
 }
 
-protocol SceneModel {
+public protocol SceneModel {
 
     var sceneName: String { get set }
     var children: [SceneModel] { get set }
@@ -36,19 +36,19 @@ protocol SceneModel {
     var customData: [AnyHashable: AnyHashable]? { get set }
 }
 
-protocol EventDelegate: class {
+public protocol EventDelegate: class {
 
     func sendEvent(_ event: NavigationEvent)
 }
 
-struct SceneModelImpl: SceneModel {
+public struct SceneModelImpl: SceneModel {
 
-    var sceneName: String
-    var children: [SceneModel]
-    var presented: SceneModel?
-    var customData: [AnyHashable: AnyHashable]?
+    public var sceneName: String
+    public var children: [SceneModel]
+    public var presented: SceneModel?
+    public var customData: [AnyHashable: AnyHashable]?
 
-    init(sceneName: String,
+    public init(sceneName: String,
          children: [SceneModel] = [],
          presented: SceneModel? = nil,
          customData: [AnyHashable: AnyHashable]? = nil) {
@@ -59,49 +59,49 @@ struct SceneModelImpl: SceneModel {
     }
 }
 
-class StackScene: Scene {
+public class StackScene: Scene {
 
-    var sceneRef: String?
+    public var sceneRef: String?
 
     private let navigationController: UINavigationController
 
-    var viewController: UIViewController {
+    public var viewController: UIViewController {
         return navigationController
     }
 
-    init(navigationController: UINavigationController) {
+    public init(navigationController: UINavigationController) {
         self.navigationController = navigationController
     }
 
-    func embed(_ children: [Scene], customData: [AnyHashable: AnyHashable]?) {
+    public func embed(_ children: [Scene], customData: [AnyHashable: AnyHashable]?) {
         let childViewControllers = children.map { $0.viewController }
         navigationController.setViewControllers(childViewControllers, animated: false)
     }
 }
 
-class TabBarScene: NSObject, Scene, UITabBarControllerDelegate {
+public class TabBarScene: NSObject, Scene, UITabBarControllerDelegate {
 
-    var sceneRef: String?
+    public var sceneRef: String?
 
     private let tabBarController: UITabBarController
 
-    var viewController: UIViewController {
+    public var viewController: UIViewController {
         return tabBarController
     }
 
-    weak var eventDelegate: EventDelegate?
+    public weak var eventDelegate: EventDelegate?
 
-    init(tabBarController: UITabBarController) {
+    public init(tabBarController: UITabBarController) {
         self.tabBarController = tabBarController
     }
 
-    func embed(_ children: [Scene], customData: [AnyHashable: AnyHashable]?) {
+    public func embed(_ children: [Scene], customData: [AnyHashable: AnyHashable]?) {
         let childViewControllers = children.map { $0.viewController }
         tabBarController.setViewControllers(childViewControllers, animated: true)
         tabBarController.selectedIndex = customData?["selectedIndex"] as? Int ?? 0
     }
 
-    func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool {
+    public func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool {
         guard let sceneRef = sceneRef,
             let selectedIndex = tabBarController.viewControllers?.index(of: viewController) else { return false }
         eventDelegate?.sendEvent(NavigationEvent(sceneRef: sceneRef, eventName: "TabBarScene/didSelectIndex", customData: ["selectedIndex": selectedIndex]))
@@ -109,13 +109,13 @@ class TabBarScene: NSObject, Scene, UITabBarControllerDelegate {
     }
 }
 
-class SingleScene: Scene {
+public class SingleScene: Scene {
 
-    var sceneRef: String?
+    public var sceneRef: String?
 
-    let viewController: UIViewController
+    public let viewController: UIViewController
 
-    init(viewController: UIViewController) {
+    public init(viewController: UIViewController) {
         self.viewController = viewController
     }
 }

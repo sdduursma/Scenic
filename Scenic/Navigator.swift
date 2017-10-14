@@ -1,6 +1,6 @@
 import UIKit
 
-protocol Navigator {
+public protocol Navigator {
 
     func set(rootSceneModel: SceneModel)
 
@@ -9,13 +9,13 @@ protocol Navigator {
     func addEventWatcher(_ watcher: @escaping (NavigationEvent) -> Void)
 }
 
-struct NavigationEvent {
+public struct NavigationEvent {
 
-    var sceneRef: String
-    var eventName: String
-    var customData: [AnyHashable: AnyHashable]?
+    public var sceneRef: String
+    public var eventName: String
+    public var customData: [AnyHashable: AnyHashable]?
 
-    init(sceneRef: String, eventName: String, customData: [AnyHashable: AnyHashable]? = nil) {
+    public init(sceneRef: String, eventName: String, customData: [AnyHashable: AnyHashable]? = nil) {
         self.sceneRef = sceneRef
         self.eventName = eventName
         self.customData = customData
@@ -24,7 +24,7 @@ struct NavigationEvent {
 
 extension NavigationEvent: Equatable {
 
-    static func ==(left: NavigationEvent, right: NavigationEvent) -> Bool {
+    public static func ==(left: NavigationEvent, right: NavigationEvent) -> Bool {
         let isCustomDataEqual: Bool
         if let leftCustomData = left.customData,
             let rightCustomData = right.customData,
@@ -41,20 +41,20 @@ extension NavigationEvent: Equatable {
     }
 }
 
-class NavigatorImpl: Navigator {
+public class NavigatorImpl: Navigator {
 
-    let window: UIWindow
+    public let window: UIWindow
 
-    let sceneFactory: SceneFactory
+    public let sceneFactory: SceneFactory
 
     private var eventWatchers: [(NavigationEvent) -> Void] = []
 
-    init(window: UIWindow, sceneFactory: SceneFactory) {
+    public init(window: UIWindow, sceneFactory: SceneFactory) {
         self.window = window
         self.sceneFactory = sceneFactory
     }
 
-    func set(rootSceneModel: SceneModel) {
+    public func set(rootSceneModel: SceneModel) {
         let rootScene = configureScene(for: rootSceneModel)
         window.rootViewController = rootScene?.viewController
     }
@@ -71,11 +71,11 @@ class NavigatorImpl: Navigator {
         return scene
     }
 
-    func sendEvent(_ event: NavigationEvent) {
+    public func sendEvent(_ event: NavigationEvent) {
         eventWatchers.forEach { $0(event) }
     }
 
-    func addEventWatcher(_ watcher: @escaping (NavigationEvent) -> Void) {
+    public func addEventWatcher(_ watcher: @escaping (NavigationEvent) -> Void) {
         eventWatchers.append(watcher)
     }
 }
