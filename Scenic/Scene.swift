@@ -5,7 +5,7 @@ public protocol SceneFactory {
     func makeScene(for sceneName: String) -> Scene?
 }
 
-public protocol Scene {
+public protocol Scene: class {
 
     var sceneRef: String? { get set }
 
