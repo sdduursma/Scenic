@@ -80,6 +80,8 @@ class SceneTests: XCTestCase {
 
         // when
         let tabBarScene = TabBarScene(tabBarController: tabBarController)
+        // Use `tabBarScene` to silence not used warning while retaining `tabBarScene` in memory.
+        _ = tabBarScene
 
         // then
         XCTAssertNotNil(tabBarController.delegate)
