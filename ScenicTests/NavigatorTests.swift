@@ -59,4 +59,20 @@ class NavigatorTests: XCTestCase {
         waitForExpectations(timeout: 10, handler: nil)
         XCTAssertEqual(event?.sceneRef, "a352afa")
     }
+
+    func testRetainsRootScene() {
+        // given
+        var scene: Scene? = MockScene()
+        weak var weakScene = scene
+        let sceneFactory = MockSceneFactory(scene: scene!, for: "scene0")
+        let navigator = NavigatorImpl(window: UIWindow(), sceneFactory: sceneFactory)
+        let sceneModel = SceneModelImpl(sceneName: "scene0")
+
+        // when
+        navigator.set(rootSceneModel: sceneModel)
+        scene = nil
+
+        // then
+        XCTAssertNotNil(weakScene)
+    }
 }

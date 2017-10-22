@@ -49,13 +49,15 @@ public class NavigatorImpl: Navigator {
 
     private var eventWatchers: [(NavigationEvent) -> Void] = []
 
+    private var rootScene: Scene?
+
     public init(window: UIWindow, sceneFactory: SceneFactory) {
         self.window = window
         self.sceneFactory = sceneFactory
     }
 
     public func set(rootSceneModel: SceneModel) {
-        let rootScene = configureScene(for: rootSceneModel)
+        rootScene = configureScene(for: rootSceneModel)
         window.rootViewController = rootScene?.viewController
     }
 
