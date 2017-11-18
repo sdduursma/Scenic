@@ -7,7 +7,7 @@ target 'Scenic' do
 
   target 'ScenicTests' do
     inherit! :search_paths
-    # Pods for testing
+    pod 'Nimble'
   end
 
 end
