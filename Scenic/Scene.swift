@@ -46,6 +46,25 @@ public struct SceneModel {
     }
 }
 
+extension SceneModel: Equatable {
+
+    public static func ==(left: SceneModel, right: SceneModel) -> Bool {
+        return left.sceneName == right.sceneName && left.children == right.children && isCustomDataEqual(left, right)
+    }
+
+    private static func isCustomDataEqual(_ left: SceneModel, _ right: SceneModel) -> Bool {
+        if let leftCustomData = left.customData,
+            let rightCustomData = right.customData,
+            leftCustomData == rightCustomData {
+            return true
+        } else if left.customData == nil && right.customData == nil {
+            return true
+        } else {
+            return false
+        }
+    }
+}
+
 public class StackScene: Scene {
 
     private let navigationController: UINavigationController
