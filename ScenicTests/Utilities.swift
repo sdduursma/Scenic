@@ -3,8 +3,6 @@ import UIKit
 
 class MockScene: Scene {
 
-    var sceneRef: String?
-
     let viewController: UIViewController
 
     private(set) var children: [Scene] = []

@@ -11,12 +11,10 @@ public protocol Navigator {
 
 public struct NavigationEvent {
 
-    public var sceneRef: String
     public var eventName: String
     public var customData: [AnyHashable: AnyHashable]?
 
-    public init(sceneRef: String, eventName: String, customData: [AnyHashable: AnyHashable]? = nil) {
-        self.sceneRef = sceneRef
+    public init(eventName: String, customData: [AnyHashable: AnyHashable]? = nil) {
         self.eventName = eventName
         self.customData = customData
     }
@@ -25,19 +23,19 @@ public struct NavigationEvent {
 extension NavigationEvent: Equatable {
 
     public static func ==(left: NavigationEvent, right: NavigationEvent) -> Bool {
-        let isCustomDataEqual: Bool
+        return left.eventName == right.eventName && isCustomDataEqual(left, right)
+    }
+
+    private static func isCustomDataEqual(_ left: NavigationEvent, _ right: NavigationEvent) -> Bool {
         if let leftCustomData = left.customData,
             let rightCustomData = right.customData,
             leftCustomData == rightCustomData {
-            isCustomDataEqual = true
+            return true
         } else if left.customData == nil && right.customData == nil {
-            isCustomDataEqual = true
+            return true
         } else {
-            isCustomDataEqual = false
+            return false
         }
-        return left.sceneRef == right.sceneRef &&
-            left.eventName == right.eventName &&
-            isCustomDataEqual
     }
 }
 

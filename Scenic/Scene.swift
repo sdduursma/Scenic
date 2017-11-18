@@ -7,8 +7,6 @@ public protocol SceneFactory {
 
 public protocol Scene: class {
 
-    var sceneRef: String? { get set }
-
     var viewController: UIViewController { get }
 
     var eventDelegate: EventDelegate? { get set }
@@ -61,8 +59,6 @@ public struct SceneModelImpl: SceneModel {
 
 public class StackScene: Scene {
 
-    public var sceneRef: String?
-
     private let navigationController: UINavigationController
 
     public var viewController: UIViewController {
@@ -80,8 +76,6 @@ public class StackScene: Scene {
 }
 
 public class TabBarScene: NSObject, Scene, UITabBarControllerDelegate {
-
-    public var sceneRef: String?
 
     private let tabBarController: UITabBarController
 
@@ -106,16 +100,13 @@ public class TabBarScene: NSObject, Scene, UITabBarControllerDelegate {
     }
 
     public func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool {
-        guard let sceneRef = sceneRef,
-            let selectedIndex = tabBarController.viewControllers?.index(of: viewController) else { return false }
-        eventDelegate?.sendEvent(NavigationEvent(sceneRef: sceneRef, eventName: "TabBarScene/didSelectIndex", customData: ["selectedIndex": selectedIndex]))
+        guard let selectedIndex = tabBarController.viewControllers?.index(of: viewController) else { return false }
+        eventDelegate?.sendEvent(NavigationEvent(eventName: "TabBarScene/didSelectIndex", customData: ["selectedIndex": selectedIndex]))
         return false
     }
 }
 
 public class SingleScene: Scene {
-
-    public var sceneRef: String?
 
     public let viewController: UIViewController
 

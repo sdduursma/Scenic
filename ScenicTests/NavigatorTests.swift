@@ -54,10 +54,10 @@ class NavigatorTests: XCTestCase {
             eventExpectation.fulfill()
         }
 
-        navigator.sendEvent(NavigationEvent(sceneRef: "a352afa", eventName: "TabBarScene/didSelectIndex"))
+        navigator.sendEvent(NavigationEvent(eventName: "TabBarScene/didSelectIndex"))
 
         waitForExpectations(timeout: 10, handler: nil)
-        XCTAssertEqual(event?.sceneRef, "a352afa")
+        XCTAssertEqual(event?.eventName, "TabBarScene/didSelectIndex")
     }
 
     func testRetainsRootScene() {

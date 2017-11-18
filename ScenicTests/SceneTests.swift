@@ -55,8 +55,6 @@ class SceneTests: XCTestCase {
         // given
         let tabBarController = UITabBarController()
         let tabBarScene = TabBarScene(tabBarController: tabBarController)
-        let sceneRef = "ac21c1"
-        tabBarScene.sceneRef = sceneRef
         let eventDelegate = MockEventDelegate()
         tabBarScene.eventDelegate = eventDelegate
         let scene0 = SingleScene(viewController: UIViewController())
@@ -69,8 +67,7 @@ class SceneTests: XCTestCase {
 
         // then
         XCTAssertFalse(shouldSelect)
-        XCTAssertTrue(eventDelegate.sentEvents.contains(NavigationEvent(sceneRef: sceneRef,
-                                                                        eventName: "TabBarScene/didSelectIndex",
+        XCTAssertTrue(eventDelegate.sentEvents.contains(NavigationEvent(eventName: "TabBarScene/didSelectIndex",
                                                                         customData: ["selectedIndex": 1])))
     }
 
