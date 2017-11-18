@@ -26,33 +26,22 @@ extension Scene {
     public func embed(_ children: [Scene], customData: [AnyHashable: AnyHashable]?) { }
 }
 
-public protocol SceneModel {
-
-    var sceneName: String { get set }
-    var children: [SceneModel] { get set }
-    var presented: SceneModel? { get set }
-    var customData: [AnyHashable: AnyHashable]? { get set }
-}
-
 public protocol EventDelegate: class {
 
     func sendEvent(_ event: NavigationEvent)
 }
 
-public struct SceneModelImpl: SceneModel {
+public struct SceneModel {
 
     public var sceneName: String
     public var children: [SceneModel]
-    public var presented: SceneModel?
     public var customData: [AnyHashable: AnyHashable]?
 
     public init(sceneName: String,
          children: [SceneModel] = [],
-         presented: SceneModel? = nil,
          customData: [AnyHashable: AnyHashable]? = nil) {
         self.sceneName = sceneName
         self.children = children
-        self.presented = presented
         self.customData = customData
     }
 }

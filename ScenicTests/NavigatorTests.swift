@@ -14,9 +14,9 @@ class NavigatorTests: XCTestCase {
         ]
         let sceneFactory = MockSceneFactory(scenes: scenes)
         let navigator = NavigatorImpl(window: window, sceneFactory: sceneFactory)
-        let rootSceneModel1 = SceneModelImpl(sceneName: "red",
-                                             children: [SceneModelImpl(sceneName: "orange",
-                                                                       children: [SceneModelImpl(sceneName: "blue")])],
+        let rootSceneModel1 = SceneModel(sceneName: "red",
+                                             children: [SceneModel(sceneName: "orange",
+                                                                       children: [SceneModel(sceneName: "blue")])],
                                              customData: ["foo": "bar"])
 
         // when
@@ -40,7 +40,7 @@ class NavigatorTests: XCTestCase {
         let navigator = NavigatorImpl(window: window, sceneFactory: sceneFactory)
 
         // when
-        navigator.set(rootSceneModel: SceneModelImpl(sceneName: "root"))
+        navigator.set(rootSceneModel: SceneModel(sceneName: "root"))
 
         // then
         XCTAssertEqual(window.rootViewController, rootScene.viewController)
@@ -55,7 +55,7 @@ class NavigatorTests: XCTestCase {
     func testWatchEventsSentByScene() {
         let scene = MockScene()
         let navigator = NavigatorImpl(window: UIWindow(), sceneFactory: MockSceneFactory(scene: scene, for: "scene"))
-        navigator.set(rootSceneModel: SceneModelImpl(sceneName: "scene"))
+        navigator.set(rootSceneModel: SceneModel(sceneName: "scene"))
         scene.triggerEvent()
         expect(navigator.events).toEventually(contain(NavigationEvent(eventName: "MockScene/event")))
     }
@@ -66,7 +66,7 @@ class NavigatorTests: XCTestCase {
         weak var weakScene = scene
         let sceneFactory = MockSceneFactory(scene: scene!, for: "scene0")
         let navigator = NavigatorImpl(window: UIWindow(), sceneFactory: sceneFactory)
-        let sceneModel = SceneModelImpl(sceneName: "scene0")
+        let sceneModel = SceneModel(sceneName: "scene0")
 
         // when
         navigator.set(rootSceneModel: sceneModel)
