@@ -4,6 +4,8 @@ public protocol Navigator {
 
     func set(rootSceneModel: SceneModel)
 
+    var events: [NavigationEvent] { get }
+
     func sendEvent(_ event: NavigationEvent)
 
     func addEventWatcher(_ watcher: @escaping (NavigationEvent) -> Void)
@@ -39,11 +41,13 @@ extension NavigationEvent: Equatable {
     }
 }
 
-public class NavigatorImpl: Navigator {
+public class NavigatorImpl: Navigator, EventDelegate {
 
     public let window: UIWindow
 
     public let sceneFactory: SceneFactory
+
+    public private(set) var events: [NavigationEvent] = []
 
     private var eventWatchers: [(NavigationEvent) -> Void] = []
 
@@ -61,6 +65,7 @@ public class NavigatorImpl: Navigator {
 
     private func configureScene(for sceneModel: SceneModel) -> Scene? {
         guard let scene = sceneFactory.makeScene(for: sceneModel.sceneName) else { return nil }
+        scene.eventDelegate = self
         var children: [Scene] = []
         for childSceneModel in sceneModel.children {
             if let childScene = configureScene(for: childSceneModel) {
@@ -72,6 +77,7 @@ public class NavigatorImpl: Navigator {
     }
 
     public func sendEvent(_ event: NavigationEvent) {
+        events.append(event)
         eventWatchers.forEach { $0(event) }
     }
 

@@ -5,6 +5,8 @@ class MockScene: Scene {
 
     let viewController: UIViewController
 
+    var eventDelegate: EventDelegate?
+
     private(set) var children: [Scene] = []
 
     private(set) var customData: [AnyHashable: AnyHashable]?
@@ -16,6 +18,10 @@ class MockScene: Scene {
     func embed(_ children: [Scene], customData: [AnyHashable: AnyHashable]?) {
         self.children = children
         self.customData = customData
+    }
+
+    func triggerEvent() {
+        eventDelegate?.sendEvent(NavigationEvent(eventName: "MockScene/event"))
     }
 }
 

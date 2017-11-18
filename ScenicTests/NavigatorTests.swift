@@ -1,4 +1,5 @@
 import XCTest
+import Nimble
 @testable import Scenic
 
 class NavigatorTests: XCTestCase {
@@ -45,19 +46,18 @@ class NavigatorTests: XCTestCase {
         XCTAssertEqual(window.rootViewController, rootScene.viewController)
     }
 
-    func testWatchEvents() {
+    func testSendEvents() {
         let navigator = NavigatorImpl(window: UIWindow(), sceneFactory: MockSceneFactory())
-        let eventExpectation = expectation(description: "should see event")
-        var event: NavigationEvent?
-        navigator.addEventWatcher { anEvent in
-            event = anEvent
-            eventExpectation.fulfill()
-        }
-
         navigator.sendEvent(NavigationEvent(eventName: "TabBarScene/didSelectIndex"))
+        expect(navigator.events).toEventually(contain(NavigationEvent(eventName: "TabBarScene/didSelectIndex")))
+    }
 
-        waitForExpectations(timeout: 10, handler: nil)
-        XCTAssertEqual(event?.eventName, "TabBarScene/didSelectIndex")
+    func testWatchEventsSentByScene() {
+        let scene = MockScene()
+        let navigator = NavigatorImpl(window: UIWindow(), sceneFactory: MockSceneFactory(scene: scene, for: "scene"))
+        navigator.set(rootSceneModel: SceneModelImpl(sceneName: "scene"))
+        scene.triggerEvent()
+        expect(navigator.events).toEventually(contain(NavigationEvent(eventName: "MockScene/event")))
     }
 
     func testRetainsRootScene() {
