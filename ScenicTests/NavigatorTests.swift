@@ -75,4 +75,15 @@ class NavigatorTests: XCTestCase {
         // then
         XCTAssertNotNil(weakScene)
     }
+
+    func testSelectIndexOfNonExistingTabBar() {
+        let sceneModel = SceneModel(sceneName: "scene")
+        XCTAssertEqual(sceneModel.selectIndex(1, ofTabBar: "tabBar"), sceneModel)
+    }
+
+    func testSelectIndexOfTabBar() {
+        let sceneModel = SceneModel(sceneName: "tabBar")
+        XCTAssertEqual(sceneModel.selectIndex(1, ofTabBar: "tabBar"),
+                       SceneModel(sceneName: "tabBar", customData: ["selectedIndex": 1]))
+    }
 }
