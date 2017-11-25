@@ -49,7 +49,7 @@ class NavigatorTests: XCTestCase {
     func testSendEvents() {
         let navigator = NavigatorImpl(window: UIWindow(), sceneFactory: MockSceneFactory())
         navigator.sendEvent(NavigationEvent(eventName: "TabBarScene/didSelectIndex"))
-        expect(navigator.events).toEventually(contain(NavigationEvent(eventName: "TabBarScene/didSelectIndex")))
+        expect(navigator.events).to(contain(NavigationEvent(eventName: "TabBarScene/didSelectIndex")))
     }
 
     func testWatchEventsSentByScene() {
@@ -57,7 +57,7 @@ class NavigatorTests: XCTestCase {
         let navigator = NavigatorImpl(window: UIWindow(), sceneFactory: MockSceneFactory(scene: scene, for: "scene"))
         navigator.set(rootSceneModel: SceneModel(sceneName: "scene"))
         scene.triggerEvent()
-        expect(navigator.events).toEventually(contain(NavigationEvent(eventName: "MockScene/event")))
+        expect(navigator.events).to(contain(NavigationEvent(eventName: "MockScene/event")))
     }
 
     func testRetainsRootScene() {
