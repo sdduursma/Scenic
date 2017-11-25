@@ -116,11 +116,14 @@ public class TabBarScene: NSObject, Scene, UITabBarControllerDelegate {
 
 extension SceneModel {
 
-    func selectIndex(_ index: Int, ofTabBar tabBarName: String) -> SceneModel {
-        guard sceneName == tabBarName else { return self }
+    public func selectIndex(_ tabBarIndex: Int, ofTabBar tabBarName: String) -> SceneModel {
         var new = self
-        new.customData = new.customData ?? [:]
-        new.customData?["selectedIndex"] = index
+        if sceneName == tabBarName {
+            new.customData = new.customData ?? [:]
+            new.customData?["selectedIndex"] = tabBarIndex
+        } else {
+            new.children = new.children.map { $0.selectIndex(tabBarIndex, ofTabBar: tabBarName) }
+        }
         return new
     }
 }
