@@ -51,7 +51,7 @@ public class NavigatorImpl: Navigator, EventDelegate {
 
     private var eventWatchers: [(NavigationEvent) -> Void] = []
 
-    private var rootScene: Scene?
+    private var rootSceneRetainer: SceneRetainer?
 
     public init(window: UIWindow, sceneFactory: SceneFactory) {
         self.window = window
@@ -59,21 +59,22 @@ public class NavigatorImpl: Navigator, EventDelegate {
     }
 
     public func set(rootSceneModel: SceneModel) {
-        rootScene = configureScene(for: rootSceneModel)
-        window.rootViewController = rootScene?.viewController
+        rootSceneRetainer = configureScene(for: rootSceneModel)
+        window.rootViewController = rootSceneRetainer?.scene.viewController
     }
 
-    private func configureScene(for sceneModel: SceneModel) -> Scene? {
+    private func configureScene(for sceneModel: SceneModel) -> SceneRetainer? {
         guard let scene = sceneFactory.makeScene(for: sceneModel.sceneName) else { return nil }
         scene.eventDelegate = self
-        var children: [Scene] = []
+        var children: [SceneRetainer] = []
         for childSceneModel in sceneModel.children {
-            if let childScene = configureScene(for: childSceneModel) {
-                children.append(childScene)
+            if let childSceneRetainer = configureScene(for: childSceneModel) {
+                children.append(childSceneRetainer)
             }
         }
-        scene.embed(children, customData: sceneModel.customData)
-        return scene
+        let sceneRetainer = SceneRetainer(scene: scene, children: children)
+        scene.embed(children.map { $0.scene }, customData: sceneModel.customData)
+        return sceneRetainer
     }
 
     public func sendEvent(_ event: NavigationEvent) {
@@ -83,5 +84,17 @@ public class NavigatorImpl: Navigator, EventDelegate {
 
     public func addEventWatcher(_ watcher: @escaping (NavigationEvent) -> Void) {
         eventWatchers.append(watcher)
+    }
+}
+
+class SceneRetainer {
+
+    let scene: Scene
+
+    let children: [SceneRetainer]
+
+    init(scene: Scene, children: [SceneRetainer]) {
+        self.scene = scene
+        self.children = children
     }
 }
