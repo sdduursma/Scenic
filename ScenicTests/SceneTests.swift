@@ -1,4 +1,5 @@
 import XCTest
+import Nimble
 @testable import Scenic
 
 class SceneTests: XCTestCase {
@@ -15,6 +16,56 @@ class SceneTests: XCTestCase {
 
         // then
         XCTAssertEqual(navigationController.viewControllers, [scene0.viewController, scene1.viewController])
+    }
+
+    func testStackSceneAssignsDelegate() {
+        let navigationController = UINavigationController()
+        let stackScene = StackScene(navigationController: navigationController)
+        // Use `stackScene` to silence not used warning while retaining `tabBarScene` in memory.
+        _ = stackScene
+        XCTAssertNotNil(navigationController.delegate)
+    }
+
+    func testStackSceneNavigationControllerDidShowAndPopped() {
+        // given
+        let navigationController = UINavigationController()
+        let stackScene = StackScene(navigationController: navigationController)
+        let scene0 = SingleScene(viewController: UIViewController())
+        let scene1 = SingleScene(viewController: UIViewController())
+        stackScene.embed([scene0, scene1], customData: nil)
+        let eventDelegate = MockEventDelegate()
+        stackScene.eventDelegate = eventDelegate
+
+        // when
+        navigationController.viewControllers.removeLast()
+        stackScene.navigationController(navigationController,
+                                        didShow: scene0.viewController,
+                                        animated: true)
+
+        // then
+        expect(eventDelegate.sentEvents).to(contain(NavigationEvent(eventName: "StackScene/didPop",
+                                                                    customData: ["toIndex": 0])))
+    }
+
+    func testStackSceneNavigationControllerDidShowButDidNotPop() {
+        // given
+        let navigationController = UINavigationController()
+        let stackScene = StackScene(navigationController: navigationController)
+        let scene0 = SingleScene(viewController: UIViewController())
+        let scene1 = SingleScene(viewController: UIViewController())
+        stackScene.embed([scene0, scene1], customData: nil)
+        let eventDelegate = MockEventDelegate()
+        stackScene.eventDelegate = eventDelegate
+
+        // when
+        stackScene.navigationController(navigationController,
+                                        didShow: scene1.viewController,
+                                        animated: true)
+
+        // then
+        expect(eventDelegate.sentEvents).toNot(containElementSatisfying({ event in
+            return event.eventName == "StackScene/didPop"
+        }))
     }
 
     func testTabBarSceneEmbedsChildren() {

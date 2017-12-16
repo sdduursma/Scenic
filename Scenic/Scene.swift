@@ -65,21 +65,40 @@ extension SceneModel: Equatable {
     }
 }
 
-public class StackScene: Scene {
+public class StackScene: NSObject, Scene, UINavigationControllerDelegate {
 
     private let navigationController: UINavigationController
+
+    private var children: [Scene] = []
 
     public var viewController: UIViewController {
         return navigationController
     }
 
+    public weak var eventDelegate: EventDelegate?
+
     public init(navigationController: UINavigationController) {
         self.navigationController = navigationController
+
+        super.init()
+
+        navigationController.delegate = self
     }
 
     public func embed(_ children: [Scene], customData: [AnyHashable: AnyHashable]?) {
+        self.children = children
         let childViewControllers = children.map { $0.viewController }
         navigationController.setViewControllers(childViewControllers, animated: false)
+    }
+
+    public func navigationController(_ navigationController: UINavigationController,
+                                     didShow viewController: UIViewController, animated: Bool) {
+        let childViewControllers = children.map { $0.viewController }
+        if navigationController.viewControllers == Array(childViewControllers.dropLast()) {
+            let toIndex = navigationController.viewControllers.count - 1
+            eventDelegate?.sendEvent(NavigationEvent(eventName: "StackScene/didPop",
+                                                     customData: ["toIndex": toIndex]))
+        }
     }
 }
 
