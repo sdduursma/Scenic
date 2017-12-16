@@ -16,6 +16,8 @@
 		66978DAB1F6ECF510063EED9 /* Navigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66978DAA1F6ECF510063EED9 /* Navigator.swift */; };
 		66978DAD1F6ECF910063EED9 /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66978DAC1F6ECF910063EED9 /* Utilities.swift */; };
 		B897C4A4944D050A9AE9F8C1 /* Pods_ScenicTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28D79514523F8463CD547B66 /* Pods_ScenicTests.framework */; };
+		BEB182221FE587D100A913DB /* SceneModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEB182211FE587D100A913DB /* SceneModel.swift */; };
+		BEB182241FE58A1E00A913DB /* SceneModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEB182231FE58A1E00A913DB /* SceneModelTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,6 +46,8 @@
 		66978DAA1F6ECF510063EED9 /* Navigator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Navigator.swift; sourceTree = "<group>"; };
 		66978DAC1F6ECF910063EED9 /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
 		96ACEDA4A200D5FDE053F83A /* Pods_Scenic.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Scenic.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		BEB182211FE587D100A913DB /* SceneModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneModel.swift; sourceTree = "<group>"; };
+		BEB182231FE58A1E00A913DB /* SceneModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneModelTests.swift; sourceTree = "<group>"; };
 		DC7281766D9BDE5FEDD7910F /* Pods-Scenic.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Scenic.release.xcconfig"; path = "Pods/Target Support Files/Pods-Scenic/Pods-Scenic.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -105,6 +109,7 @@
 				661FF86F1F6ECC5300B9C873 /* Scenic.h */,
 				661FF8701F6ECC5300B9C873 /* Info.plist */,
 				66978DA81F6ECED30063EED9 /* Scene.swift */,
+				BEB182211FE587D100A913DB /* SceneModel.swift */,
 				66978DAA1F6ECF510063EED9 /* Navigator.swift */,
 			);
 			path = Scenic;
@@ -115,6 +120,7 @@
 			children = (
 				661FF87A1F6ECC5300B9C873 /* NavigatorTests.swift */,
 				661FF87C1F6ECC5300B9C873 /* Info.plist */,
+				BEB182231FE58A1E00A913DB /* SceneModelTests.swift */,
 				66978DA61F6ECE9F0063EED9 /* SceneTests.swift */,
 				66978DAC1F6ECF910063EED9 /* Utilities.swift */,
 			);
@@ -333,6 +339,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BEB182221FE587D100A913DB /* SceneModel.swift in Sources */,
 				66978DA91F6ECED30063EED9 /* Scene.swift in Sources */,
 				66978DAB1F6ECF510063EED9 /* Navigator.swift in Sources */,
 			);
@@ -344,6 +351,7 @@
 			files = (
 				66978DAD1F6ECF910063EED9 /* Utilities.swift in Sources */,
 				66978DA71F6ECE9F0063EED9 /* SceneTests.swift in Sources */,
+				BEB182241FE58A1E00A913DB /* SceneModelTests.swift in Sources */,
 				661FF87B1F6ECC5300B9C873 /* NavigatorTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
