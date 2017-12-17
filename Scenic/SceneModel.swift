@@ -36,14 +36,39 @@ extension SceneModel: Equatable {
 
 extension SceneModel {
 
-    public func selectIndex(_ tabBarIndex: Int, ofTabBar tabBarName: String) -> SceneModel {
+    func withSceneName(_ name: String) -> SceneModel {
         var new = self
-        if sceneName == tabBarName {
-            new.customData = new.customData ?? [:]
-            new.customData?["selectedIndex"] = tabBarIndex
-        } else {
-            new.children = new.children.map { $0.selectIndex(tabBarIndex, ofTabBar: tabBarName) }
-        }
+        new.sceneName = name
         return new
+    }
+
+    func withChildren(_ children: [SceneModel]) -> SceneModel {
+        var new = self
+        new.children = children
+        return new
+    }
+
+    func withCustomData(_ customData: [AnyHashable: AnyHashable]?) -> SceneModel {
+        var new = self
+        new.customData = customData
+        return new
+    }
+
+    func update(_ name: String, with closure: (SceneModel) -> SceneModel) -> SceneModel {
+        if sceneName == name {
+            return closure(self)
+        }
+        return withChildren(children.map { $0.update(name, with: closure)})
+    }
+}
+
+extension SceneModel {
+
+    public func selectIndex(_ tabBarIndex: Int, ofTabBar tabBarName: String) -> SceneModel {
+        return update(tabBarName) { tabBar in
+            var customData = tabBar.customData ?? [:]
+            customData["selectedIndex"] = tabBarIndex
+            return tabBar.withCustomData(customData)
+        }
     }
 }
