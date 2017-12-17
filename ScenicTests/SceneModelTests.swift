@@ -57,4 +57,27 @@ class SceneModelTests: XCTestCase {
         XCTAssertEqual(sceneModel.selectIndex(1, ofTabBar: "tabBar"),
                        SceneModel(sceneName: "tabBar", customData: ["selectedIndex": 1]))
     }
+
+    func testPopEmptyStackToIndex0() {
+        let sceneModel = SceneModel(sceneName: "stack")
+        XCTAssertEqual(sceneModel.popStack("stack", to: 0),
+                       SceneModel(sceneName: "stack"))
+    }
+
+    func testPopStackToOutOfBoundsIndex() {
+        let sceneModel = SceneModel(sceneName: "stack", children: [SceneModel(sceneName: "a"),
+                                                                   SceneModel(sceneName: "b")])
+        XCTAssertEqual(sceneModel.popStack("stack", to: 10),
+                       SceneModel(sceneName: "stack", children: [SceneModel(sceneName: "a"),
+                                                                 SceneModel(sceneName: "b")]))
+    }
+
+    func testPopStackWithChildrenToIndex() {
+        let sceneModel = SceneModel(sceneName: "stack", children: [SceneModel(sceneName: "a"),
+                                                                   SceneModel(sceneName: "b"),
+                                                                   SceneModel(sceneName: "c")])
+        XCTAssertEqual(sceneModel.popStack("stack", to: 1),
+                       SceneModel(sceneName: "stack", children: [SceneModel(sceneName: "a"),
+                                                                 SceneModel(sceneName: "b")]))
+    }
 }

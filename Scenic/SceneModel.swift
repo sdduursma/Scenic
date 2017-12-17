@@ -72,3 +72,11 @@ extension SceneModel {
         }
     }
 }
+
+extension SceneModel {
+
+    public func popStack(_ stackName: String, to index: Int) -> SceneModel {
+        guard children.indices.contains(index) else { return self }
+        return withChildren(Array(children.prefix(through: index)))
+    }
+}
