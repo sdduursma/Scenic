@@ -29,12 +29,16 @@ class MockSceneFactory: SceneFactory {
 
     private let sceneConstructors: [String: () -> Scene]
 
-    init(scenes: [String: Scene] = [:]) {
-        sceneConstructors = scenes.mapValues { scene in return { scene } }
+    init(scenes constructors: [String: () -> Scene]) {
+        sceneConstructors = constructors
     }
 
-    init(scene constructor: @autoclosure @escaping () -> Scene, for sceneName: String) {
-        sceneConstructors = [sceneName: constructor]
+    convenience init(scenes: [String: Scene] = [:]) {
+        self.init(scenes: scenes.mapValues { scene in return { scene } })
+    }
+
+    convenience init(scene: Scene, for sceneName: String) {
+        self.init(scenes: [sceneName: scene])
     }
 
     func makeScene(for sceneName: String) -> Scene? {
