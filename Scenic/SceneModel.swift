@@ -36,25 +36,25 @@ extension SceneModel: Equatable {
 
 extension SceneModel {
 
-    func withSceneName(_ name: String) -> SceneModel {
+    public func withSceneName(_ name: String) -> SceneModel {
         var new = self
         new.sceneName = name
         return new
     }
 
-    func withChildren(_ children: [SceneModel]) -> SceneModel {
+    public func withChildren(_ children: [SceneModel]) -> SceneModel {
         var new = self
         new.children = children
         return new
     }
 
-    func withCustomData(_ customData: [AnyHashable: AnyHashable]?) -> SceneModel {
+    public func withCustomData(_ customData: [AnyHashable: AnyHashable]?) -> SceneModel {
         var new = self
         new.customData = customData
         return new
     }
 
-    func update(_ name: String, with closure: (SceneModel) -> SceneModel) -> SceneModel {
+    public func update(_ name: String, with closure: (SceneModel) -> SceneModel) -> SceneModel {
         if sceneName == name {
             return closure(self)
         }
