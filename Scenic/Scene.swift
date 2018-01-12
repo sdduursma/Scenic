@@ -43,7 +43,7 @@ public class StackScene: NSObject, Scene, UINavigationControllerDelegate {
 
     public weak var eventDelegate: EventDelegate?
 
-    public init(navigationController: UINavigationController) {
+    public init(navigationController: UINavigationController = UINavigationController()) {
         self.navigationController = navigationController
 
         super.init()
@@ -78,7 +78,7 @@ public class TabBarScene: NSObject, Scene, UITabBarControllerDelegate {
 
     public weak var eventDelegate: EventDelegate?
 
-    public init(tabBarController: UITabBarController) {
+    public init(tabBarController: UITabBarController = UITabBarController()) {
         self.tabBarController = tabBarController
 
         super.init()
@@ -103,7 +103,7 @@ public class SingleScene: Scene {
 
     public let viewController: UIViewController
 
-    public init(viewController: UIViewController) {
+    public init(viewController: UIViewController = UIViewController()) {
         self.viewController = viewController
     }
 }

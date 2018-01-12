@@ -8,8 +8,8 @@ class SceneTests: XCTestCase {
         // given
         let navigationController = UINavigationController()
         let stackScene = StackScene(navigationController: navigationController)
-        let scene0 = SingleScene(viewController: UIViewController())
-        let scene1 = SingleScene(viewController: UIViewController())
+        let scene0 = SingleScene()
+        let scene1 = SingleScene()
 
         // when
         stackScene.embed([scene0, scene1], customData: nil)
@@ -30,8 +30,8 @@ class SceneTests: XCTestCase {
         // given
         let navigationController = UINavigationController()
         let stackScene = StackScene(navigationController: navigationController)
-        let scene0 = SingleScene(viewController: UIViewController())
-        let scene1 = SingleScene(viewController: UIViewController())
+        let scene0 = SingleScene()
+        let scene1 = SingleScene()
         stackScene.embed([scene0, scene1], customData: nil)
         let eventDelegate = MockEventDelegate()
         stackScene.eventDelegate = eventDelegate
@@ -51,8 +51,8 @@ class SceneTests: XCTestCase {
         // given
         let navigationController = UINavigationController()
         let stackScene = StackScene(navigationController: navigationController)
-        let scene0 = SingleScene(viewController: UIViewController())
-        let scene1 = SingleScene(viewController: UIViewController())
+        let scene0 = SingleScene()
+        let scene1 = SingleScene()
         stackScene.embed([scene0, scene1], customData: nil)
         let eventDelegate = MockEventDelegate()
         stackScene.eventDelegate = eventDelegate
@@ -72,8 +72,8 @@ class SceneTests: XCTestCase {
         // given
         let tabBarController = UITabBarController()
         let tabBarScene = TabBarScene(tabBarController: tabBarController)
-        let scene0 = SingleScene(viewController: UIViewController())
-        let scene1 = SingleScene(viewController: UIViewController())
+        let scene0 = SingleScene()
+        let scene1 = SingleScene()
 
         // when
         tabBarScene.embed([scene0, scene1], customData: ["selectedIndex": 1])
@@ -91,8 +91,8 @@ class SceneTests: XCTestCase {
         // given
         let tabBarController = UITabBarController()
         let tabBarScene = TabBarScene(tabBarController: tabBarController)
-        let scene0 = SingleScene(viewController: UIViewController())
-        let scene1 = SingleScene(viewController: UIViewController())
+        let scene0 = SingleScene()
+        let scene1 = SingleScene()
 
         // when
         tabBarScene.embed([scene0, scene1], customData: ["selectedIndex": 1])
@@ -108,7 +108,7 @@ class SceneTests: XCTestCase {
         let tabBarScene = TabBarScene(tabBarController: tabBarController)
         let eventDelegate = MockEventDelegate()
         tabBarScene.eventDelegate = eventDelegate
-        let scene0 = SingleScene(viewController: UIViewController())
+        let scene0 = SingleScene()
         let viewController1 = UIViewController()
         let scene1 = SingleScene(viewController: viewController1)
         tabBarScene.embed([scene0, scene1], customData: nil)
