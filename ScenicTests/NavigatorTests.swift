@@ -75,4 +75,23 @@ class NavigatorTests: XCTestCase {
         // then
         XCTAssertNotNil(weakScene)
     }
+
+    func testPersistsScenes() {
+        // given
+        let window = UIWindow()
+        let sceneFactory = MockSceneFactory(scenes: ["a": { StackScene() }, "b": { SingleScene() }])
+        let navigator = NavigatorImpl(window: window, sceneFactory: sceneFactory)
+        navigator.set(rootSceneModel: SceneModel(sceneName: "a", children: [SceneModel(sceneName: "b")]))
+        let viewControllerA0 = window.rootViewController
+        let viewControllerB0 = viewControllerA0?.childViewControllers.first
+
+        // when
+        navigator.set(rootSceneModel: SceneModel(sceneName: "a", children: [SceneModel(sceneName: "b")]))
+
+        // then
+        let viewControllerA1 = window.rootViewController
+        let viewControllerB1 = viewControllerA1?.childViewControllers.first
+        expect(viewControllerA0).to(beIdenticalTo(viewControllerA1))
+        expect(viewControllerB0).to(beIdenticalTo(viewControllerB1))
+    }
 }

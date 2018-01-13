@@ -64,7 +64,7 @@ public class NavigatorImpl: Navigator, EventDelegate {
     }
 
     private func configureScene(for sceneModel: SceneModel) -> SceneRetainer? {
-        guard let scene = sceneFactory.makeScene(for: sceneModel.sceneName) else { return nil }
+        guard let scene = aquireScene(for: sceneModel.sceneName) else { return nil }
         scene.eventDelegate = self
         var children: [SceneRetainer] = []
         for childSceneModel in sceneModel.children {
@@ -72,9 +72,14 @@ public class NavigatorImpl: Navigator, EventDelegate {
                 children.append(childSceneRetainer)
             }
         }
-        let sceneRetainer = SceneRetainer(scene: scene, children: children)
+        let sceneRetainer = SceneRetainer(sceneName: sceneModel.sceneName, scene: scene, children: children)
         scene.embed(children.map { $0.scene }, customData: sceneModel.customData)
         return sceneRetainer
+    }
+
+    private func aquireScene(for sceneName: String) -> Scene? {
+        return rootSceneRetainer?.sceneRetainer(forSceneName: sceneName)?.scene ??
+            sceneFactory.makeScene(for: sceneName)
     }
 
     public func sendEvent(_ event: NavigationEvent) {
@@ -84,17 +89,5 @@ public class NavigatorImpl: Navigator, EventDelegate {
 
     public func addEventWatcher(_ watcher: @escaping (NavigationEvent) -> Void) {
         eventWatchers.append(watcher)
-    }
-}
-
-class SceneRetainer {
-
-    let scene: Scene
-
-    let children: [SceneRetainer]
-
-    init(scene: Scene, children: [SceneRetainer]) {
-        self.scene = scene
-        self.children = children
     }
 }
