@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "Scenic"
-  s.version      = "0.3.0"
+  s.version      = "0.4.0"
   s.summary      = "A library for declaratively defining navigation hierarchies in iOS using simple data structures."
   s.homepage     = "https://github.com/sdduursma/Scenic"
   s.license      = "MIT"
