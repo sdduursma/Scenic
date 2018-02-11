@@ -43,7 +43,7 @@ class SceneTests: XCTestCase {
                                         animated: true)
 
         // then
-        expect(eventDelegate.sentEvents).to(contain(NavigationEvent(eventName: "StackScene/didPop",
+        expect(eventDelegate.sentEvents).to(contain(NavigationEvent(eventName: StackScene.didPopEventName,
                                                                     customData: ["toIndex": 0])))
     }
 
@@ -64,7 +64,7 @@ class SceneTests: XCTestCase {
 
         // then
         expect(eventDelegate.sentEvents).toNot(containElementSatisfying({ event in
-            return event.eventName == "StackScene/didPop"
+            return event.eventName == StackScene.didPopEventName
         }))
     }
 

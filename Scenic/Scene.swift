@@ -33,6 +33,8 @@ public protocol EventDelegate: class {
 
 public class StackScene: NSObject, Scene, UINavigationControllerDelegate {
 
+    static let didPopEventName = "StackScene.didPop".scenicNamespacedName
+
     private let navigationController: UINavigationController
 
     private var children: [Scene] = []
@@ -62,7 +64,7 @@ public class StackScene: NSObject, Scene, UINavigationControllerDelegate {
         let childViewControllers = children.map { $0.viewController }
         if navigationController.viewControllers == Array(childViewControllers.dropLast()) {
             let toIndex = navigationController.viewControllers.count - 1
-            eventDelegate?.sendEvent(NavigationEvent(eventName: "StackScene/didPop",
+            eventDelegate?.sendEvent(NavigationEvent(eventName: StackScene.didPopEventName,
                                                      customData: ["toIndex": toIndex]))
         }
     }

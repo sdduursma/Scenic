@@ -84,7 +84,7 @@ extension SceneModel {
 extension SceneModel {
 
     public func applyStackDidPop(to stackName: String, event: NavigationEvent) -> SceneModel {
-        if event.eventName == "StackScene/didPop",
+        if event.eventName == StackScene.didPopEventName,
             let toIndex = event.customData?["toIndex"] as? Int {
             return popStack(stackName, to: toIndex)
         }

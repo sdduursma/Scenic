@@ -107,7 +107,7 @@ class SceneModelTests: XCTestCase {
                                     children: [SceneModel(sceneName: "a"),
                                                SceneModel(sceneName: "b")])
         XCTAssertEqual(sceneModel.applyStackDidPop(to: "stack",
-                                                   event: NavigationEvent(eventName: "StackScene/didPop",
+                                                   event: NavigationEvent(eventName: StackScene.didPopEventName,
                                                                           customData: ["toIndex": 0])),
                        SceneModel(sceneName: "stack",
                                   children: [SceneModel(sceneName: "a")]))
