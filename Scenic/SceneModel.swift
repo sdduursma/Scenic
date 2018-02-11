@@ -75,6 +75,14 @@ extension SceneModel {
 
 extension SceneModel {
 
+    public func applyStackDidPop(to stackName: String, event: NavigationEvent) -> SceneModel {
+        if event.eventName == "StackScene/didPop",
+            let toIndex = event.customData?["toIndex"] as? Int {
+            return popStack(stackName, to: toIndex)
+        }
+        return self
+    }
+
     public func popStack(_ stackName: String, to index: Int) -> SceneModel {
         return update(stackName) { stack in
             guard stack.children.indices.contains(index) else { return stack }

@@ -80,4 +80,24 @@ class SceneModelTests: XCTestCase {
                        SceneModel(sceneName: "stack", children: [SceneModel(sceneName: "a"),
                                                                  SceneModel(sceneName: "b")]))
     }
+
+    func testApplyStackDidPopToIndex() {
+        let sceneModel = SceneModel(sceneName: "stack",
+                                    children: [SceneModel(sceneName: "a"),
+                                               SceneModel(sceneName: "b")])
+        XCTAssertEqual(sceneModel.applyStackDidPop(to: "stack",
+                                                   event: NavigationEvent(eventName: "StackScene/didPop",
+                                                                          customData: ["toIndex": 0])),
+                       SceneModel(sceneName: "stack",
+                                  children: [SceneModel(sceneName: "a")]))
+    }
+
+    func testApplyStackDidPopToIndexOtherEvent() {
+        let sceneModel = SceneModel(sceneName: "stack",
+                                    children: [SceneModel(sceneName: "a"),
+                                               SceneModel(sceneName: "b")])
+        XCTAssertEqual(sceneModel.applyStackDidPop(to: "stack",
+                                                   event: NavigationEvent(eventName: "foo")),
+                       sceneModel)
+    }
 }
