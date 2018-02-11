@@ -70,6 +70,8 @@ public class StackScene: NSObject, Scene, UINavigationControllerDelegate {
 
 public class TabBarScene: NSObject, Scene, UITabBarControllerDelegate {
 
+    public static let didSelectIndexEventName = "TabBarScene.didSelectIndexEvent".scenicNamespacedName
+
     private let tabBarController: UITabBarController
 
     public var viewController: UIViewController {
@@ -94,7 +96,7 @@ public class TabBarScene: NSObject, Scene, UITabBarControllerDelegate {
 
     public func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool {
         guard let selectedIndex = tabBarController.viewControllers?.index(of: viewController) else { return false }
-        eventDelegate?.sendEvent(NavigationEvent(eventName: "TabBarScene/didSelectIndex", customData: ["selectedIndex": selectedIndex]))
+        eventDelegate?.sendEvent(NavigationEvent(eventName: TabBarScene.didSelectIndexEventName, customData: ["selectedIndex": selectedIndex]))
         return false
     }
 }

@@ -118,7 +118,7 @@ class SceneTests: XCTestCase {
 
         // then
         XCTAssertFalse(shouldSelect)
-        XCTAssertTrue(eventDelegate.sentEvents.contains(NavigationEvent(eventName: "TabBarScene/didSelectIndex",
+        XCTAssertTrue(eventDelegate.sentEvents.contains(NavigationEvent(eventName: TabBarScene.didSelectIndexEventName,
                                                                         customData: ["selectedIndex": 1])))
     }
 

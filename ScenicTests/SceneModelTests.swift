@@ -72,7 +72,7 @@ class SceneModelTests: XCTestCase {
                                                                     SceneModel(sceneName: "b")],
                                     customData: ["selectedIndex": 0])
         XCTAssertEqual(sceneModel.applyTabBarDidSelectIndex(to: "tabBar",
-                                                            event: NavigationEvent(eventName: "TabBarScene/didSelectIndex",
+                                                            event: NavigationEvent(eventName: TabBarScene.didSelectIndexEventName,
                                                                                    customData: ["selectedIndex": 1])),
                        SceneModel(sceneName: "tabBar", children: [SceneModel(sceneName: "a"),
                                                                   SceneModel(sceneName: "b")],
