@@ -1,5 +1,12 @@
 import UIKit
 
+extension String {
+
+    var scenicNamespacedName: String {
+        return "com.sdduursma.Scenic." + self
+    }
+}
+
 public protocol Navigator {
 
     func set(rootSceneModel: SceneModel)
