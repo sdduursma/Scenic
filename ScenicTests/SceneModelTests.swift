@@ -58,6 +58,27 @@ class SceneModelTests: XCTestCase {
                        SceneModel(sceneName: "tabBar", customData: ["selectedIndex": 1]))
     }
 
+    func testApplyTabBarDidSelectIndexWithOtherEvent() {
+        let sceneModel = SceneModel(sceneName: "tabBar", children: [SceneModel(sceneName: "a"),
+                                                                    SceneModel(sceneName: "b")],
+                                    customData: ["selectedIndex": 0])
+        XCTAssertEqual(sceneModel.applyTabBarDidSelectIndex(to: "tabBar",
+                                                            event: NavigationEvent(eventName: "foo")),
+                       sceneModel)
+    }
+
+    func testApplyTabBarDidSelectIndex() {
+        let sceneModel = SceneModel(sceneName: "tabBar", children: [SceneModel(sceneName: "a"),
+                                                                    SceneModel(sceneName: "b")],
+                                    customData: ["selectedIndex": 0])
+        XCTAssertEqual(sceneModel.applyTabBarDidSelectIndex(to: "tabBar",
+                                                            event: NavigationEvent(eventName: "TabBarScene/didSelectIndex",
+                                                                                   customData: ["selectedIndex": 1])),
+                       SceneModel(sceneName: "tabBar", children: [SceneModel(sceneName: "a"),
+                                                                  SceneModel(sceneName: "b")],
+                                  customData: ["selectedIndex": 1]))
+    }
+
     func testPopEmptyStackToIndex0() {
         let sceneModel = SceneModel(sceneName: "stack")
         XCTAssertEqual(sceneModel.popStack("stack", to: 0),

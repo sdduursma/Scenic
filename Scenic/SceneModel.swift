@@ -64,6 +64,14 @@ extension SceneModel {
 
 extension SceneModel {
 
+    public func applyTabBarDidSelectIndex(to tabBarName: String, event: NavigationEvent) -> SceneModel {
+        if event.eventName == "TabBarScene/didSelectIndex",
+            let index = event.customData?["selectedIndex"] as? Int {
+            return selectIndex(index, ofTabBar: tabBarName)
+        }
+        return self
+    }
+
     public func selectIndex(_ tabBarIndex: Int, ofTabBar tabBarName: String) -> SceneModel {
         return update(tabBarName) { tabBar in
             var customData = tabBar.customData ?? [:]
