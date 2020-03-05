@@ -1,5 +1,7 @@
 # Scenic
 
+Scenic is alpha software and subject to change.
+
 ## Introduction
 
 With Scenic, the navigation hierarchy of an app is defined using a simple data structure called a _SceneModel_. For example, this SceneModel defines an app with a UITabBarController which contains a UINavigationController with two child view controllers in the first tab and another view controller in the second tab:
