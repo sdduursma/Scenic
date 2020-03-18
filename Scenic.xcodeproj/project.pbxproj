@@ -165,7 +165,6 @@
 				661FF8681F6ECC5300B9C873 /* Frameworks */,
 				661FF8691F6ECC5300B9C873 /* Headers */,
 				661FF86A1F6ECC5300B9C873 /* Resources */,
-				358EC6FFBD9FAC39C1891A67 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -185,7 +184,6 @@
 				661FF8721F6ECC5300B9C873 /* Frameworks */,
 				661FF8731F6ECC5300B9C873 /* Resources */,
 				AE56E35B47778C6AC1F91661 /* [CP] Embed Pods Frameworks */,
-				848EC3958D6F6872A1E0937B /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -254,36 +252,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		358EC6FFBD9FAC39C1891A67 /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Copy Pods Resources";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Scenic/Pods-Scenic-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		848EC3958D6F6872A1E0937B /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Copy Pods Resources";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-ScenicTests/Pods-ScenicTests-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 		9DB77973D38D543ABDA3AF0A /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -308,7 +276,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${SRCROOT}/Pods/Target Support Files/Pods-ScenicTests/Pods-ScenicTests-frameworks.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-ScenicTests/Pods-ScenicTests-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/Nimble/Nimble.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
@@ -317,7 +285,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-ScenicTests/Pods-ScenicTests-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ScenicTests/Pods-ScenicTests-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		F4A63D1F039C56043C77021A /* [CP] Check Pods Manifest.lock */ = {
