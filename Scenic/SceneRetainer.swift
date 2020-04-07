@@ -8,10 +8,20 @@ class SceneRetainer {
 
     let children: [SceneRetainer]
 
-    init(sceneName: String, scene: Scene, children: [SceneRetainer]) {
+    let presented: SceneRetainer?
+
+    let customData: [AnyHashable: AnyHashable]?
+
+    init(sceneName: String,
+         scene: Scene,
+         children: [SceneRetainer] = [],
+         presented: SceneRetainer? = nil,
+         customData: [AnyHashable: AnyHashable]? = nil) {
         self.sceneName = sceneName
         self.scene = scene
         self.children = children
+        self.presented = presented
+        self.customData = customData
     }
 }
 
@@ -21,6 +31,11 @@ extension SceneRetainer {
         if sceneName == name {
             return self
         }
-        return children.flatMap { $0.sceneRetainer(forSceneName: name) } .first
+        for child in children {
+            if let retainer = child.sceneRetainer(forSceneName: name) {
+                return retainer
+            }
+        }
+        return presented?.sceneRetainer(forSceneName: name)
     }
 }

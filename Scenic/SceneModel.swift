@@ -1,16 +1,39 @@
 import Foundation
 
+fileprivate class Box<T> {
+
+    fileprivate let value: T
+
+    fileprivate init(_ value: T) {
+        self.value = value
+    }
+}
+
 public struct SceneModel {
 
     public var sceneName: String
     public var children: [SceneModel]
+
+    private var _presented: Box<SceneModel>?
+
+    /// The SceneModel that is presented by this SceneModel.
+    public var presented: SceneModel? {
+        get {
+            _presented?.value
+        } set(newVal) {
+            _presented = newVal.map { Box($0) }
+        }
+    }
+
     public var customData: [AnyHashable: AnyHashable]?
 
     public init(sceneName: String,
                 children: [SceneModel] = [],
+                presented: SceneModel? = nil,
                 customData: [AnyHashable: AnyHashable]? = nil) {
         self.sceneName = sceneName
         self.children = children
+        self._presented = presented.map { Box($0) }
         self.customData = customData
     }
 }
@@ -18,7 +41,10 @@ public struct SceneModel {
 extension SceneModel: Equatable {
 
     public static func ==(left: SceneModel, right: SceneModel) -> Bool {
-        return left.sceneName == right.sceneName && left.children == right.children && isCustomDataEqual(left, right)
+        return left.sceneName == right.sceneName
+            && left.children == right.children
+            && left.presented == right.presented
+            && isCustomDataEqual(left, right)
     }
 
     private static func isCustomDataEqual(_ left: SceneModel, _ right: SceneModel) -> Bool {
@@ -45,6 +71,12 @@ extension SceneModel {
     public func withChildren(_ children: [SceneModel]) -> SceneModel {
         var new = self
         new.children = children
+        return new
+    }
+
+    public func withPresented(_ presented: SceneModel) -> SceneModel {
+        var new = self
+        new.presented = presented
         return new
     }
 
