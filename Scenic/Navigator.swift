@@ -114,7 +114,6 @@ public class NavigatorImpl: Navigator, EventDelegate {
             && scene.viewController.presentedViewController != retainer.presented?.scene.viewController {
             scene.viewController.dismiss(animated: animated) {
                 if let presented = retainer.presented {
-                    // TODO: Parametrise animated
                     scene.viewController.present(presented.scene.viewController, animated: animated) { [weak self] in
                         self?.buildViewControllerHierarchy(from: presented)
                     }
@@ -122,7 +121,6 @@ public class NavigatorImpl: Navigator, EventDelegate {
             }
         }
         if let presented = retainer.presented {
-            // TODO: Parametrise animated
             scene.viewController.present(presented.scene.viewController, animated: animated) { [weak self] in
                 self?.buildViewControllerHierarchy(from: presented)
             }
