@@ -96,6 +96,14 @@ extension SceneModel {
 
 extension SceneModel {
 
+    public func applyTabBarDidSelectIndex(event: NavigationEvent) -> SceneModel {
+        if event.eventName == TabBarScene.didSelectIndexEventName,
+            let index = event.customData?["selectedIndex"] as? Int {
+            return selectIndex(index, ofTabBar: event.sceneName)
+        }
+        return self
+    }
+
     public func applyTabBarDidSelectIndex(to tabBarName: String, event: NavigationEvent) -> SceneModel {
         if event.eventName == TabBarScene.didSelectIndexEventName,
             let index = event.customData?["selectedIndex"] as? Int {
@@ -114,6 +122,14 @@ extension SceneModel {
 }
 
 extension SceneModel {
+
+    public func applyStackDidPop(event: NavigationEvent) -> SceneModel {
+        if event.eventName == StackScene.didPopEventName,
+            let toIndex = event.customData?["toIndex"] as? Int {
+            return popStack(event.sceneName, to: toIndex)
+        }
+        return self
+    }
 
     public func applyStackDidPop(to stackName: String, event: NavigationEvent) -> SceneModel {
         if event.eventName == StackScene.didPopEventName,

@@ -58,21 +58,44 @@ class SceneModelTests: XCTestCase {
                        SceneModel(sceneName: "tabBar", customData: ["selectedIndex": 1]))
     }
 
-    func testApplyTabBarDidSelectIndexWithOtherEvent() {
+    func testApplyTabBarDidSelectIndexDeprecatedWithOtherEvent() {
         let sceneModel = SceneModel(sceneName: "tabBar", children: [SceneModel(sceneName: "a"),
                                                                     SceneModel(sceneName: "b")],
                                     customData: ["selectedIndex": 0])
         XCTAssertEqual(sceneModel.applyTabBarDidSelectIndex(to: "tabBar",
-                                                            event: NavigationEvent(eventName: "foo")),
+                                                            event: NavigationEvent(eventName: "foo",
+                                                                                   sceneName: "")),
                        sceneModel)
+    }
+
+    func testApplyTabBarDidSelectIndexWithOtherEvent() {
+        let sceneModel = SceneModel(sceneName: "tabBar", children: [SceneModel(sceneName: "a"),
+                                                                    SceneModel(sceneName: "b")],
+                                    customData: ["selectedIndex": 0])
+        XCTAssertEqual(sceneModel.applyTabBarDidSelectIndex(event: NavigationEvent(eventName: "foo",
+                                                                                   sceneName: "tabBar")),
+                       sceneModel)
+    }
+
+    func testApplyTabBarDidSelectIndexDeprecated() {
+        let sceneModel = SceneModel(sceneName: "tabBar", children: [SceneModel(sceneName: "a"),
+                                                                    SceneModel(sceneName: "b")],
+                                    customData: ["selectedIndex": 0])
+        XCTAssertEqual(sceneModel.applyTabBarDidSelectIndex(to: "tabBar",
+                                                            event: NavigationEvent(eventName: TabBarScene.didSelectIndexEventName,
+                                                                                   sceneName: "",
+                                                                                   customData: ["selectedIndex": 1])),
+                       SceneModel(sceneName: "tabBar", children: [SceneModel(sceneName: "a"),
+                                                                  SceneModel(sceneName: "b")],
+                                  customData: ["selectedIndex": 1]))
     }
 
     func testApplyTabBarDidSelectIndex() {
         let sceneModel = SceneModel(sceneName: "tabBar", children: [SceneModel(sceneName: "a"),
                                                                     SceneModel(sceneName: "b")],
                                     customData: ["selectedIndex": 0])
-        XCTAssertEqual(sceneModel.applyTabBarDidSelectIndex(to: "tabBar",
-                                                            event: NavigationEvent(eventName: TabBarScene.didSelectIndexEventName,
+        XCTAssertEqual(sceneModel.applyTabBarDidSelectIndex(event: NavigationEvent(eventName: TabBarScene.didSelectIndexEventName,
+                                                                                   sceneName: "tabBar",
                                                                                    customData: ["selectedIndex": 1])),
                        SceneModel(sceneName: "tabBar", children: [SceneModel(sceneName: "a"),
                                                                   SceneModel(sceneName: "b")],
@@ -108,6 +131,7 @@ class SceneModelTests: XCTestCase {
                                                SceneModel(sceneName: "b")])
         XCTAssertEqual(sceneModel.applyStackDidPop(to: "stack",
                                                    event: NavigationEvent(eventName: StackScene.didPopEventName,
+                                                                          sceneName: "",
                                                                           customData: ["toIndex": 0])),
                        SceneModel(sceneName: "stack",
                                   children: [SceneModel(sceneName: "a")]))
@@ -118,7 +142,8 @@ class SceneModelTests: XCTestCase {
                                     children: [SceneModel(sceneName: "a"),
                                                SceneModel(sceneName: "b")])
         XCTAssertEqual(sceneModel.applyStackDidPop(to: "stack",
-                                                   event: NavigationEvent(eventName: "foo")),
+                                                   event: NavigationEvent(eventName: "foo",
+                                                                          sceneName: "")),
                        sceneModel)
     }
 }

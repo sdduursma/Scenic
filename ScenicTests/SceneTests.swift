@@ -43,8 +43,8 @@ class SceneTests: XCTestCase {
                                         animated: true)
 
         // then
-        expect(eventDelegate.sentEvents).to(contain(NavigationEvent(eventName: StackScene.didPopEventName,
-                                                                    customData: ["toIndex": 0])))
+        expect(eventDelegate.sentEvents).to(contain(SceneEvent(eventName: StackScene.didPopEventName,
+                                                               customData: ["toIndex": 0])))
     }
 
     func testStackSceneNavigationControllerDidShowButDidNotPop() {
@@ -118,8 +118,8 @@ class SceneTests: XCTestCase {
 
         // then
         XCTAssertFalse(shouldSelect)
-        XCTAssertTrue(eventDelegate.sentEvents.contains(NavigationEvent(eventName: TabBarScene.didSelectIndexEventName,
-                                                                        customData: ["selectedIndex": 1])))
+        XCTAssertTrue(eventDelegate.sentEvents.contains(SceneEvent(eventName: TabBarScene.didSelectIndexEventName,
+                                                                   customData: ["selectedIndex": 1])))
     }
 
     func testTabBarSceneAssignsDelegate() {

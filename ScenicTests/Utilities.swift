@@ -21,7 +21,7 @@ class MockScene: Scene {
     }
 
     func triggerEvent() {
-        eventDelegate?.sendEvent(NavigationEvent(eventName: "MockScene/event"))
+        eventDelegate?.scene(self, didPercieve: SceneEvent(eventName: "MockScene/event"))
     }
 }
 
@@ -48,9 +48,9 @@ class MockSceneFactory: SceneFactory {
 
 class MockEventDelegate: EventDelegate {
 
-    private(set) var sentEvents: [NavigationEvent] = []
+    private(set) var sentEvents: [SceneEvent] = []
 
-    func sendEvent(_ event: NavigationEvent) {
+    func scene(_ scene: Scene, didPercieve event: SceneEvent) {
         sentEvents.append(event)
     }
 }

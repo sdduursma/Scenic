@@ -28,10 +28,13 @@ extension Navigator {
 public struct NavigationEvent {
 
     public var eventName: String
+    public var sceneName: String
+    // TODO: Add rootSceneModel
     public var customData: [AnyHashable: AnyHashable]?
 
-    public init(eventName: String, customData: [AnyHashable: AnyHashable]? = nil) {
+    public init(eventName: String, sceneName: String, customData: [AnyHashable: AnyHashable]? = nil) {
         self.eventName = eventName
+        self.sceneName = sceneName
         self.customData = customData
     }
 }
@@ -39,7 +42,9 @@ public struct NavigationEvent {
 extension NavigationEvent: Equatable {
 
     public static func ==(left: NavigationEvent, right: NavigationEvent) -> Bool {
-        return left.eventName == right.eventName && isCustomDataEqual(left, right)
+        return left.sceneName == right.sceneName
+            && left.eventName == right.eventName
+            && isCustomDataEqual(left, right)
     }
 
     private static func isCustomDataEqual(_ left: NavigationEvent, _ right: NavigationEvent) -> Bool {
@@ -67,12 +72,15 @@ public class NavigatorImpl: Navigator, EventDelegate {
 
     private var rootSceneRetainer: SceneRetainer?
 
+    private var sceneToName: [ObjectIdentifier: String] = [:]
+
     public init(window: UIWindow, sceneFactory: SceneFactory) {
         self.window = window
         self.sceneFactory = sceneFactory
     }
 
     public func set(rootSceneModel: SceneModel, _ options: [String: Any]? = nil) {
+        sceneToName = [:]
         rootSceneRetainer = retainerHierarchy(from: rootSceneModel)
         if let retainer = rootSceneRetainer {
             window.rootViewController = retainer.scene.viewController
@@ -87,6 +95,7 @@ public class NavigatorImpl: Navigator, EventDelegate {
     private func retainerHierarchy(from sceneModel: SceneModel) -> SceneRetainer? {
         let retainer: SceneRetainer?
         if let scene = aquireScene(for: sceneModel.sceneName) {
+            sceneToName[ObjectIdentifier(scene)] = sceneModel.sceneName
             scene.eventDelegate = self
             var children: [SceneRetainer] = []
             for childSceneModel in sceneModel.children {
@@ -140,7 +149,23 @@ public class NavigatorImpl: Navigator, EventDelegate {
         eventWatchers.forEach { $0(event) }
     }
 
+    public func scene(_ scene: Scene, didPercieve sceneEvent: SceneEvent) {
+        guard let sceneName = sceneName(for: scene) else {
+            NSLog("[Scenic] Inconsistency warning: scene \(scene) does not appear in the scene hierarchy")
+            return
+        }
+        let event = NavigationEvent(eventName: sceneEvent.eventName,
+                                    sceneName: sceneName,
+                                    customData: sceneEvent.customData)
+        events.append(event)
+        eventWatchers.forEach { $0(event) }
+    }
+
     public func addEventWatcher(_ watcher: @escaping (NavigationEvent) -> Void) {
         eventWatchers.append(watcher)
+    }
+
+    private func sceneName(for scene: Scene) -> String? {
+        sceneToName[ObjectIdentifier(scene)]
     }
 }

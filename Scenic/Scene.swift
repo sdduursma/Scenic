@@ -26,9 +26,14 @@ extension Scene {
     public func embed(_ children: [Scene], customData: [AnyHashable: AnyHashable]?) { }
 }
 
+public struct SceneEvent: Equatable {
+    public var eventName: String
+    public var customData: [AnyHashable: AnyHashable]? = nil
+}
+
 public protocol EventDelegate: class {
 
-    func sendEvent(_ event: NavigationEvent)
+    func scene(_ scene: Scene, didPercieve event: SceneEvent)
 }
 
 public class StackScene: NSObject, Scene, UINavigationControllerDelegate {
@@ -64,8 +69,8 @@ public class StackScene: NSObject, Scene, UINavigationControllerDelegate {
         let childViewControllers = children.map { $0.viewController }
         if navigationController.viewControllers == Array(childViewControllers.dropLast()) {
             let toIndex = navigationController.viewControllers.count - 1
-            eventDelegate?.sendEvent(NavigationEvent(eventName: StackScene.didPopEventName,
-                                                     customData: ["toIndex": toIndex]))
+            eventDelegate?.scene(self, didPercieve: SceneEvent(eventName: StackScene.didPopEventName,
+                                                               customData: ["toIndex": toIndex]))
         }
     }
 }
@@ -98,7 +103,7 @@ public class TabBarScene: NSObject, Scene, UITabBarControllerDelegate {
 
     public func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool {
         guard let selectedIndex = tabBarController.viewControllers?.index(of: viewController) else { return false }
-        eventDelegate?.sendEvent(NavigationEvent(eventName: TabBarScene.didSelectIndexEventName, customData: ["selectedIndex": selectedIndex]))
+        eventDelegate?.scene(self, didPercieve: SceneEvent(eventName: TabBarScene.didSelectIndexEventName, customData: ["selectedIndex": selectedIndex]))
         return false
     }
 }
