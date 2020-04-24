@@ -68,6 +68,8 @@ public class NavigatorImpl: Navigator, EventDelegate {
 
     public private(set) var events: [NavigationEvent] = []
 
+    private let serial = DispatchQueue(label: "com.sdduursma.Scenic.Navigator/serial")
+
     private var eventWatchers: [(NavigationEvent) -> Void] = []
 
     private var rootSceneRetainer: SceneRetainer?
@@ -79,12 +81,33 @@ public class NavigatorImpl: Navigator, EventDelegate {
         self.sceneFactory = sceneFactory
     }
 
-    public func set(rootSceneModel: SceneModel, _ options: [String: Any]? = nil) {
+    /// Asynchronously sets the new scene hierarchy. This operation is thread-safe.
+    public func send(_ hierarchy: SceneModel, _ options: [String: Any]? = nil, _ completion: (() -> Void)? = nil) {
+        serial.async { [weak self] in
+            guard let self = self else { return }
+
+            let group = DispatchGroup()
+            group.enter()
+
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                self.set(rootSceneModel: hierarchy, options) {
+                    group.leave()
+                }
+            }
+
+            group.wait()
+
+            completion?()
+        }
+    }
+
+    public func set(rootSceneModel: SceneModel, _ options: [String: Any]? = nil, completion: (() -> Void)? = nil) {
         sceneToName = [:]
         rootSceneRetainer = retainerHierarchy(from: rootSceneModel)
         if let retainer = rootSceneRetainer {
             window.rootViewController = retainer.scene.viewController
-            buildViewControllerHierarchy(from: retainer, options)
+            buildViewControllerHierarchy(from: retainer, options: options, completion)
         }
     }
 
@@ -115,27 +138,45 @@ public class NavigatorImpl: Navigator, EventDelegate {
         return retainer
     }
 
-    private func buildViewControllerHierarchy(from retainer: SceneRetainer, _ options: [String: Any]? = nil) {
+    /// Must be called on the main thread.
+    private func buildViewControllerHierarchy(from retainer: SceneRetainer, options: [String: Any]? = nil, _ completion: (() -> Void)? = nil) {
+        let group = DispatchGroup()
+        _buildViewControllerHierarchy(from: retainer, group: group, options)
+        group.notify(queue: .main) {
+            completionHandler?()
+        }
+    }
+
+    /// Must be called on the main thread.
+    private func _buildViewControllerHierarchy(from retainer: SceneRetainer, group: DispatchGroup, _ options: [String: Any]? = nil) {
+        group.enter()
         let animated = (options?["animated"] as? Bool) == true
         let scene = retainer.scene
         scene.embed(retainer.children.map { $0.scene }, customData: retainer.customData)
         if scene.viewController.presentedViewController != nil
             && scene.viewController.presentedViewController != retainer.presented?.scene.viewController {
+            group.enter()
             scene.viewController.dismiss(animated: animated) {
                 if let presented = retainer.presented {
+                    group.enter()
                     scene.viewController.present(presented.scene.viewController, animated: animated) { [weak self] in
-                        self?.buildViewControllerHierarchy(from: presented)
+                        self?._buildViewControllerHierarchy(from: presented, group: group)
+                        group.leave()
                     }
                 }
+                group.leave()
             }
         } else if let presented = retainer.presented {
+            group.enter()
             scene.viewController.present(presented.scene.viewController, animated: animated) { [weak self] in
-                self?.buildViewControllerHierarchy(from: presented)
+                self?._buildViewControllerHierarchy(from: presented, group: group)
+                group.leave()
             }
         }
         for child in retainer.children {
-            buildViewControllerHierarchy(from: child)
+            _buildViewControllerHierarchy(from: child, group: group)
         }
+        group.leave()
     }
 
     private func aquireScene(for sceneName: String) -> Scene? {
