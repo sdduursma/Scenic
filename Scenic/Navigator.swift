@@ -128,8 +128,7 @@ public class NavigatorImpl: Navigator, EventDelegate {
                     }
                 }
             }
-        }
-        if let presented = retainer.presented {
+        } else if let presented = retainer.presented {
             scene.viewController.present(presented.scene.viewController, animated: animated) { [weak self] in
                 self?.buildViewControllerHierarchy(from: presented)
             }
