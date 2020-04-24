@@ -143,7 +143,7 @@ public class NavigatorImpl: Navigator, EventDelegate {
         let group = DispatchGroup()
         _buildViewControllerHierarchy(from: retainer, group: group, options)
         group.notify(queue: .main) {
-            completionHandler?()
+            completion?()
         }
     }
 
