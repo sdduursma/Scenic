@@ -117,7 +117,7 @@ public class NavigatorImpl: Navigator, EventDelegate {
 
     private func retainerHierarchy(from sceneModel: SceneModel) -> SceneRetainer? {
         let retainer: SceneRetainer?
-        if let scene = aquireScene(for: sceneModel.sceneName) {
+        if let scene = acquireScene(for: sceneModel.sceneName) {
             sceneToName[ObjectIdentifier(scene)] = sceneModel.sceneName
             scene.eventDelegate = self
             var children: [SceneRetainer] = []
@@ -179,7 +179,7 @@ public class NavigatorImpl: Navigator, EventDelegate {
         group.leave()
     }
 
-    private func aquireScene(for sceneName: String) -> Scene? {
+    private func acquireScene(for sceneName: String) -> Scene? {
         return rootSceneRetainer?.sceneRetainer(forSceneName: sceneName)?.scene ??
             sceneFactory.makeScene(for: sceneName)
     }
