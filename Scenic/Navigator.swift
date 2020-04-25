@@ -88,6 +88,7 @@ public class NavigatorImpl: Navigator, EventDelegate {
     /// Asynchronously sets the new scene hierarchy. This operation is thread-safe.
     public func send(rootSceneModel: SceneModel, options: [String: Any]?, completion: (() -> Void)?) {
         serial.async { [weak self] in
+            // TODO: Call completion handler if self is nil?
             guard let self = self else { return }
 
             let group = DispatchGroup()
@@ -117,6 +118,8 @@ public class NavigatorImpl: Navigator, EventDelegate {
         if let retainer = rootSceneRetainer {
             window.rootViewController = retainer.scene.viewController
             buildViewControllerHierarchy(from: retainer, options: options, completion)
+        } else {
+            completion?()
         }
     }
 
