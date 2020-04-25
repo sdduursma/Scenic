@@ -72,6 +72,8 @@ public class NavigatorImpl: Navigator, EventDelegate {
 
     private var eventWatchers: [(NavigationEvent) -> Void] = []
 
+    private var hierarchy: SceneModel?
+
     private var rootSceneRetainer: SceneRetainer?
 
     private var sceneToName: [ObjectIdentifier: String] = [:]
@@ -103,6 +105,11 @@ public class NavigatorImpl: Navigator, EventDelegate {
     }
 
     public func set(rootSceneModel: SceneModel, _ options: [String: Any]? = nil, completion: (() -> Void)? = nil) {
+        guard rootSceneModel != hierarchy else {
+            completion?()
+            return
+        }
+        hierarchy = rootSceneModel
         sceneToName = [:]
         rootSceneRetainer = retainerHierarchy(from: rootSceneModel)
         if let retainer = rootSceneRetainer {
