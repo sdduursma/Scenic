@@ -74,7 +74,7 @@ extension SceneModel {
         return new
     }
 
-    public func withPresented(_ presented: SceneModel) -> SceneModel {
+    public func withPresented(_ presented: SceneModel?) -> SceneModel {
         var new = self
         new.presented = presented
         return new
