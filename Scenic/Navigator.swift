@@ -9,6 +9,8 @@ extension String {
 
 public protocol Navigator {
 
+    func send(rootSceneModel: SceneModel, options: [String: Any]?, completion: (() -> Void)?)
+
     func set(rootSceneModel: SceneModel)
 
     var events: [NavigationEvent] { get }
@@ -84,7 +86,7 @@ public class NavigatorImpl: Navigator, EventDelegate {
     }
 
     /// Asynchronously sets the new scene hierarchy. This operation is thread-safe.
-    public func send(_ hierarchy: SceneModel, _ options: [String: Any]? = nil, _ completion: (() -> Void)? = nil) {
+    public func send(rootSceneModel: SceneModel, options: [String: Any]?, completion: (() -> Void)?) {
         serial.async { [weak self] in
             guard let self = self else { return }
 
@@ -93,7 +95,7 @@ public class NavigatorImpl: Navigator, EventDelegate {
 
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
-                self.set(rootSceneModel: hierarchy, options) {
+                self.set(rootSceneModel: rootSceneModel, options) {
                     group.leave()
                 }
             }
