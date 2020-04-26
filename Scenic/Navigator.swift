@@ -165,8 +165,9 @@ public class NavigatorImpl: Navigator, EventDelegate {
         let animated = (options?["animated"] as? Bool) == true
         let scene = retainer.scene
         scene.embed(retainer.children.map { $0.scene }, customData: retainer.customData)
-        if scene.viewController.presentedViewController != nil
-            && scene.viewController.presentedViewController != retainer.presented?.scene.viewController {
+        if let presented = scene.viewController.presentedViewController,
+            presented.presentingViewController == retainer.scene.viewController
+            && presented != retainer.presented?.scene.viewController {
             group.enter()
             scene.viewController.dismiss(animated: animated) {
                 if let presented = retainer.presented {
