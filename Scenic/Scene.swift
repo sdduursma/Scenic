@@ -12,6 +12,9 @@ public protocol Scene: class {
     var eventDelegate: EventDelegate? { get set }
 
     func embed(_ children: [Scene], customData: [AnyHashable: AnyHashable]?)
+
+    // TODO: Pass custom data?
+    func prepareForReuse()
 }
 
 extension Scene {
@@ -24,6 +27,8 @@ extension Scene {
     }
 
     public func embed(_ children: [Scene], customData: [AnyHashable: AnyHashable]?) { }
+
+    public func prepareForReuse() { }
 }
 
 public struct SceneEvent: Equatable {
@@ -64,6 +69,10 @@ public class StackScene: NSObject, Scene, UINavigationControllerDelegate {
         navigationController.setViewControllers(childViewControllers, animated: false)
     }
 
+    public func prepareForReuse() {
+        navigationController.setViewControllers([], animated: false)
+    }
+
     public func navigationController(_ navigationController: UINavigationController,
                                      didShow viewController: UIViewController, animated: Bool) {
         let childViewControllers = children.map { $0.viewController }
@@ -99,6 +108,10 @@ public class TabBarScene: NSObject, Scene, UITabBarControllerDelegate {
         let childViewControllers = children.map { $0.viewController }
         tabBarController.setViewControllers(childViewControllers, animated: true)
         tabBarController.selectedIndex = customData?["selectedIndex"] as? Int ?? 0
+    }
+
+    public func prepareForReuse() {
+        tabBarController.setViewControllers(nil, animated: false)
     }
 
     public func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool {

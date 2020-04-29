@@ -193,8 +193,11 @@ public class NavigatorImpl: Navigator, EventDelegate {
     }
 
     private func acquireScene(for sceneName: String) -> Scene? {
-        return rootSceneRetainer?.sceneRetainer(forSceneName: sceneName)?.scene ??
-            sceneFactory.makeScene(for: sceneName)
+        if let scene = rootSceneRetainer?.sceneRetainer(forSceneName: sceneName)?.scene {
+            scene.prepareForReuse()
+            return scene
+        }
+        return sceneFactory.makeScene(for: sceneName)
     }
 
     public func sendEvent(_ event: NavigationEvent) {
