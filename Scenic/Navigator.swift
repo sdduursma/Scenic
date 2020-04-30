@@ -180,10 +180,14 @@ public class NavigatorImpl: Navigator, EventDelegate {
                 group.leave()
             }
         } else if let presented = retainer.presented {
-            group.enter()
-            scene.viewController.present(presented.scene.viewController, animated: animated) { [weak self] in
-                self?._buildViewControllerHierarchy(from: presented, group: group, options)
-                group.leave()
+            if presented.scene.viewController != scene.viewController.presentedViewController {
+                group.enter()
+                scene.viewController.present(presented.scene.viewController, animated: animated) { [weak self] in
+                    self?._buildViewControllerHierarchy(from: presented, group: group, options)
+                    group.leave()
+                }
+            } else {
+                _buildViewControllerHierarchy(from: presented, group: group, options)
             }
         }
         for child in retainer.children {
