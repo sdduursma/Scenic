@@ -11,6 +11,9 @@
       location = "group:Scenic.xcodeproj">
    </FileRef>
    <FileRef
+      location = "group:ScenicTestHarness/ScenicTestHarness.xcodeproj">
+   </FileRef>
+   <FileRef
       location = "group:Pods/Pods.xcodeproj">
    </FileRef>
 </Workspace>
