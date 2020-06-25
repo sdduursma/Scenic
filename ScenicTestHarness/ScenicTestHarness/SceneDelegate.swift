@@ -7,17 +7,77 @@
 //
 
 import UIKit
+import Scenic
+
+class ColorViewController: UIViewController {
+
+    let colorName: String
+
+    init(colorName: String) {
+        self.colorName = colorName
+
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        title = colorName
+
+        let color = nameToColor(colorName) ?? .black
+        view.backgroundColor = color
+    }
+}
+
+private func nameToColor(_ name: String) -> UIColor? {
+    let mapping: [String: UIColor] = [
+        "red": .red,
+        "orange": .orange,
+        "yellow": .yellow,
+        "green": .green,
+        "blue": .blue,
+        "magenta": .magenta,
+        "purple": .purple,
+        "gray": .gray,
+        "brown": .brown
+    ]
+    return mapping[name]
+}
+
+class TestSceneFactory: SceneFactory {
+
+    func makeScene(for sceneName: String) -> Scene? {
+        switch sceneName {
+        case "stack":
+            return StackScene()
+        case "tabBar":
+            return TabBarScene()
+        default:
+            return SingleScene(viewController: ColorViewController(colorName: sceneName))
+        }
+    }
+}
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
 
+    private(set) var navigator: Navigator?
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
         // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
-        guard let _ = (scene as? UIWindowScene) else { return }
+        guard let scene = (scene as? UIWindowScene) else { return }
+
+        window = UIWindow(windowScene: scene)
+        navigator = NavigatorImpl(window: window!, sceneFactory: TestSceneFactory())
+        navigator?.set(rootSceneModel: SceneModel(sceneName: "red"))
+        window?.makeKeyAndVisible()
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {
