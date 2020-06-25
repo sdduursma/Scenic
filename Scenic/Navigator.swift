@@ -9,7 +9,7 @@ extension String {
 
 public protocol Navigator {
 
-    func send(rootSceneModel: SceneModel, options: [String: Any]?, completion: (() -> Void)?)
+    func send(rootSceneModel: SceneModel, options: [String: AnyHashable]?, completion: (() -> Void)?)
 
     func set(rootSceneModel: SceneModel)
 
@@ -22,7 +22,7 @@ public protocol Navigator {
 
 extension Navigator {
 
-    func set(rootSceneModel: SceneModel, _ options: [String: Any]?) {
+    func set(rootSceneModel: SceneModel, _ options: [String: AnyHashable]?) {
         set(rootSceneModel: rootSceneModel)
     }
 }
@@ -86,7 +86,7 @@ public class NavigatorImpl: Navigator, EventDelegate {
     }
 
     /// Asynchronously sets the new scene hierarchy. This operation is thread-safe.
-    public func send(rootSceneModel: SceneModel, options: [String: Any]?, completion: (() -> Void)?) {
+    public func send(rootSceneModel: SceneModel, options: [String: AnyHashable]?, completion: (() -> Void)?) {
         serial.async { [weak self] in
             // TODO: Call completion handler if self is nil?
             guard let self = self else { return }
@@ -107,7 +107,7 @@ public class NavigatorImpl: Navigator, EventDelegate {
         }
     }
 
-    public func set(rootSceneModel: SceneModel, _ options: [String: Any]? = nil, completion: (() -> Void)? = nil) {
+    public func set(rootSceneModel: SceneModel, _ options: [String: AnyHashable]? = nil, completion: (() -> Void)? = nil) {
         guard rootSceneModel != hierarchy else {
             completion?()
             return
@@ -151,7 +151,7 @@ public class NavigatorImpl: Navigator, EventDelegate {
     }
 
     /// Must be called on the main thread.
-    private func buildViewControllerHierarchy(from retainer: SceneRetainer, options: [String: Any]? = nil, _ completion: (() -> Void)? = nil) {
+    private func buildViewControllerHierarchy(from retainer: SceneRetainer, options: [String: AnyHashable]? = nil, _ completion: (() -> Void)? = nil) {
         let group = DispatchGroup()
         _buildViewControllerHierarchy(from: retainer, group: group, options)
         group.notify(queue: .main) {
@@ -160,11 +160,12 @@ public class NavigatorImpl: Navigator, EventDelegate {
     }
 
     /// Must be called on the main thread.
-    private func _buildViewControllerHierarchy(from retainer: SceneRetainer, group: DispatchGroup, _ options: [String: Any]? = nil) {
+    private func _buildViewControllerHierarchy(from retainer: SceneRetainer, group: DispatchGroup, _ options: [String: AnyHashable]? = nil) {
         group.enter()
         let animated = (options?["animated"] as? Bool) == true
         let scene = retainer.scene
-        scene.embed(retainer.children.map { $0.scene }, customData: retainer.customData)
+        scene.configure(with: retainer.customData)
+        scene.embed(retainer.children.map { $0.scene }, options: options)
         if let presented = scene.viewController.presentedViewController,
             presented.presentingViewController == retainer.scene.viewController
             && presented != retainer.presented?.scene.viewController {
@@ -198,7 +199,6 @@ public class NavigatorImpl: Navigator, EventDelegate {
 
     private func acquireScene(for sceneName: String) -> Scene? {
         if let scene = rootSceneRetainer?.sceneRetainer(forSceneName: sceneName)?.scene {
-            scene.prepareForReuse()
             return scene
         }
         return sceneFactory.makeScene(for: sceneName)

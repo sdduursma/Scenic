@@ -11,10 +11,9 @@ public protocol Scene: class {
 
     var eventDelegate: EventDelegate? { get set }
 
-    func embed(_ children: [Scene], customData: [AnyHashable: AnyHashable]?)
+    func configure(with customData: [AnyHashable: AnyHashable]?)
 
-    // TODO: Pass custom data?
-    func prepareForReuse()
+    func embed(_ children: [Scene], options: [String: AnyHashable]?)
 }
 
 extension Scene {
@@ -26,9 +25,9 @@ extension Scene {
         set { }
     }
 
-    public func embed(_ children: [Scene], customData: [AnyHashable: AnyHashable]?) { }
+    public func configure(with customData: [AnyHashable: AnyHashable]?) { }
 
-    public func prepareForReuse() { }
+    public func embed(_ children: [Scene], options: [String: AnyHashable]?) { }
 }
 
 public struct SceneEvent: Equatable {
@@ -63,14 +62,11 @@ public class StackScene: NSObject, Scene, UINavigationControllerDelegate {
         navigationController.delegate = self
     }
 
-    public func embed(_ children: [Scene], customData: [AnyHashable: AnyHashable]?) {
+    public func embed(_ children: [Scene], options: [String: AnyHashable]?) {
         self.children = children
         let childViewControllers = children.map { $0.viewController }
-        navigationController.setViewControllers(childViewControllers, animated: false)
-    }
-
-    public func prepareForReuse() {
-        navigationController.setViewControllers([], animated: false)
+        let animated = options?["animated".scenicNamespacedName] as? Bool ?? true
+        navigationController.setViewControllers(childViewControllers, animated: animated)
     }
 
     public func navigationController(_ navigationController: UINavigationController,
@@ -88,6 +84,8 @@ public class TabBarScene: NSObject, Scene, UITabBarControllerDelegate {
 
     public static let didSelectIndexEventName = "TabBarScene.didSelectIndexEvent".scenicNamespacedName
 
+    private var selectedIndex = 0
+
     private let tabBarController: UITabBarController
 
     public var viewController: UIViewController {
@@ -104,14 +102,15 @@ public class TabBarScene: NSObject, Scene, UITabBarControllerDelegate {
         tabBarController.delegate = self
     }
 
-    public func embed(_ children: [Scene], customData: [AnyHashable: AnyHashable]?) {
-        let childViewControllers = children.map { $0.viewController }
-        tabBarController.setViewControllers(childViewControllers, animated: true)
-        tabBarController.selectedIndex = customData?["selectedIndex"] as? Int ?? 0
+    public func configure(with customData: [AnyHashable : AnyHashable]?) {
+        selectedIndex = customData?["selectedIndex"] as? Int ?? selectedIndex
     }
 
-    public func prepareForReuse() {
-        tabBarController.setViewControllers(nil, animated: false)
+    public func embed(_ children: [Scene], options: [String: AnyHashable]?) {
+        let childViewControllers = children.map { $0.viewController }
+        let animated = options?["animated".scenicNamespacedName] as? Bool ?? true
+        tabBarController.setViewControllers(childViewControllers, animated: animated)
+        tabBarController.selectedIndex = selectedIndex
     }
 
     public func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool {
