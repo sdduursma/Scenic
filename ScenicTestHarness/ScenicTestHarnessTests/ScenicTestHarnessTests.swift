@@ -32,4 +32,29 @@ class ScenicTestHarnessTests: XCTestCase {
         }
         wait(for: [exp], timeout: 10)
     }
+
+    func testSiblingDismissAndPresent() throws {
+        // TODO: This test will cause an error like the following to be logged:
+        // Presenting view controllers on detached view controllers is discouraged <ScenicTestHarness.ColorViewController: 0x7fc2a2421ec0>.
+
+        let exp1 = expectation(description: "")
+        navigator.send(rootSceneModel: SceneModel(sceneName: "tabBar",
+                                                  children: [SceneModel(sceneName: "red",
+                                                                        presented: SceneModel(sceneName: "yellow")),
+                                                             SceneModel(sceneName: "orange")]),
+                       options: ["animated": true]) {
+            exp1.fulfill()
+        }
+        wait(for: [exp1], timeout: 10)
+
+        let exp2 = expectation(description: "")
+        navigator.send(rootSceneModel: SceneModel(sceneName: "tabBar",
+                                                  children: [SceneModel(sceneName: "red"),
+                                                             SceneModel(sceneName: "orange",
+                                                                        presented: SceneModel(sceneName: "green"))]),
+                       options: ["animated": true]) {
+            exp2.fulfill()
+        }
+        wait(for: [exp2], timeout: 10)
+    }
 }
