@@ -112,12 +112,13 @@ public class NavigatorImpl: Navigator, EventDelegate {
             completion?()
             return
         }
+        let oldHierarchy = hierarchy
         hierarchy = rootSceneModel
         sceneToName = [:]
         rootSceneRetainer = retainerHierarchy(from: rootSceneModel)
         if let retainer = rootSceneRetainer {
             window.rootViewController = retainer.scene.viewController
-            buildViewControllerHierarchy(from: retainer, options: options, completion)
+            buildViewControllerHierarchy(from: retainer, oldHierarchy: oldHierarchy, newHierarchy: rootSceneModel, options: options, completion)
         } else {
             completion?()
         }
@@ -151,48 +152,94 @@ public class NavigatorImpl: Navigator, EventDelegate {
     }
 
     /// Must be called on the main thread.
-    private func buildViewControllerHierarchy(from retainer: SceneRetainer, options: [String: AnyHashable]? = nil, _ completion: (() -> Void)? = nil) {
+    private func buildViewControllerHierarchy(from retainer: SceneRetainer, oldHierarchy: SceneModel?, newHierarchy: SceneModel, options: [String: AnyHashable]? = nil, _ completion: (() -> Void)? = nil) {
         let group = DispatchGroup()
-        _buildViewControllerHierarchy(from: retainer, group: group, options)
+        _buildViewControllerHierarchy(from: retainer, oldHierarchy: oldHierarchy, newHierarchy: newHierarchy, group: group, options)
         group.notify(queue: .main) {
             completion?()
         }
     }
 
     /// Must be called on the main thread.
-    private func _buildViewControllerHierarchy(from retainer: SceneRetainer, group: DispatchGroup, _ options: [String: AnyHashable]? = nil) {
+    private func _buildViewControllerHierarchy(from retainer: SceneRetainer, oldHierarchy: SceneModel?, newHierarchy: SceneModel, group: DispatchGroup, _ options: [String: AnyHashable]? = nil) {
         group.enter()
         let animated = (options?["animated"] as? Bool) == true
         let scene = retainer.scene
         scene.configure(with: retainer.customData)
         scene.embed(retainer.children.map { $0.scene }, options: options)
-        if let presented = scene.viewController.presentedViewController,
-            presented.presentingViewController == retainer.scene.viewController
-            && presented != retainer.presented?.scene.viewController {
-            group.enter()
-            scene.viewController.dismiss(animated: animated) {
-                if let presented = retainer.presented {
-                    group.enter()
-                    scene.viewController.present(presented.scene.viewController, animated: animated) { [weak self] in
-                        self?._buildViewControllerHierarchy(from: presented, group: group, options)
-                        group.leave()
-                    }
-                }
-                group.leave()
-            }
-        } else if let presented = retainer.presented {
-            if presented.scene.viewController != scene.viewController.presentedViewController {
+        if newHierarchy.presented != oldHierarchy?.presented {
+            if oldHierarchy?.presented == nil, let presented = retainer.presented {
+                // Present new presented
+                // TODO: Dismiss any currently presented VC?
                 group.enter()
-                scene.viewController.present(presented.scene.viewController, animated: animated) { [weak self] in
-                    self?._buildViewControllerHierarchy(from: presented, group: group, options)
+                scene.viewController.present(presented.scene.viewController, animated: animated, completion: { [weak self] in
+                    // TODO: No force unwrap
+                    self?._buildViewControllerHierarchy(from: presented, oldHierarchy: nil, newHierarchy: newHierarchy.presented!, group: group)
                     group.leave()
+                })
+            } else if newHierarchy.presented == nil {
+                // Dismiss old presented
+                if let presentedVc = scene.viewController.presentedViewController,
+                   !presentedVc.isBeingDismissed {
+                    group.enter()
+                    scene.viewController.dismiss(animated: animated, completion: {
+                        group.leave()
+                    })
                 }
-            } else {
-                _buildViewControllerHierarchy(from: presented, group: group, options)
+            } else if let presented = retainer.presented {
+                // Replace old presented with new presented
+                if let oldPresentedVc = scene.viewController.presentedViewController,
+                   !oldPresentedVc.isBeingDismissed {
+                    // Dismiss any VC that's currently presented.
+                    group.enter()
+                    scene.viewController.dismiss(animated: animated, completion: {
+                        scene.viewController.present(presented.scene.viewController, animated: animated, completion: { [weak self] in
+                            // TODO: No force unwrap
+                            self?._buildViewControllerHierarchy(from: presented, oldHierarchy: nil, newHierarchy: newHierarchy.presented!, group: group)
+                            group.leave()
+                        })
+                    })
+                } else {
+                    // Directly present the new VC.
+                    group.enter()
+                    scene.viewController.present(presented.scene.viewController, animated: animated, completion: { [weak self] in
+                        // TODO: No force unwrap
+                        self?._buildViewControllerHierarchy(from: presented, oldHierarchy: nil, newHierarchy: newHierarchy.presented!, group: group)
+                        group.leave()
+                    })
+                }
             }
         }
+//        if let presented = scene.viewController.presentedViewController,
+//            presented.presentingViewController == retainer.scene.viewController
+//            && presented != retainer.presented?.scene.viewController {
+//            group.enter()
+//            scene.viewController.dismiss(animated: animated) {
+//                if let presented = retainer.presented {
+//                    group.enter()
+//                    scene.viewController.present(presented.scene.viewController, animated: animated) { [weak self] in
+//                        self?._buildViewControllerHierarchy(from: presented, group: group, options)
+//                        group.leave()
+//                    }
+//                }
+//                group.leave()
+//            }
+//        } else if let presented = retainer.presented {
+//            if presented.scene.viewController != scene.viewController.presentedViewController {
+//                group.enter()
+//                scene.viewController.present(presented.scene.viewController, animated: animated) { [weak self] in
+//                    self?._buildViewControllerHierarchy(from: presented, group: group, options)
+//                    group.leave()
+//                }
+//            } else {
+//                _buildViewControllerHierarchy(from: presented, group: group, options)
+//            }
+//        }
         for child in retainer.children {
-            _buildViewControllerHierarchy(from: child, group: group, options)
+            let oldChildSceneModel = oldHierarchy?.children.filter { $0.sceneName == child.sceneName }.first
+            // TODO: Don't force unwrap
+            let newChildSceneModel = newHierarchy.children.filter { $0.sceneName == child.sceneName }.first!
+            _buildViewControllerHierarchy(from: child, oldHierarchy: oldChildSceneModel, newHierarchy: newChildSceneModel, group: group, options)
         }
         group.leave()
     }
