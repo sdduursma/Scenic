@@ -25,22 +25,24 @@ class ScenicTestHarnessTests: XCTestCase {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
 
-    func testPresent() throws {
+    func testReplacePresented() throws {
         let exp1 = expectation(description: "")
         navigator.send(rootSceneModel: SceneModel(sceneName: "red",
                                                   presented: SceneModel(sceneName: "orange",
                                                                         presented: SceneModel(sceneName: "yellow"))),
                        options: ["animated": true]) {
-                        exp1.fulfill()
+            exp1.fulfill()
         }
-        wait(for: [exp1], timeout: 10)
+        wait(for: [exp1], timeout: 240)
 
-        let exp2 = expectation(description: "")
-        navigator.send(rootSceneModel: SceneModel(sceneName: "red"),
-                       options: ["animated": true]) {
-            exp2.fulfill()
-        }
-        wait(for: [exp2], timeout: 10)
+//        let exp2 = expectation(description: "")
+//        navigator.send(rootSceneModel: SceneModel(sceneName: "red",
+//                                                  presented: SceneModel(sceneName: "orange",
+//                                                                        presented: SceneModel(sceneName: "green"))),
+//                       options: ["animated": true]) {
+//            exp2.fulfill()
+//        }
+//        wait(for: [exp2], timeout: 240)
     }
 
     func testSetSimpleSceneModel() throws {

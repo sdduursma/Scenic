@@ -31,6 +31,12 @@ class ColorViewController: UIViewController {
         let color = nameToColor(colorName) ?? .black
         view.backgroundColor = color
     }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+
+        NSLog("!!! viewWillDisappear: \(colorName)")
+    }
 }
 
 private func nameToColor(_ name: String) -> UIColor? {
@@ -43,7 +49,8 @@ private func nameToColor(_ name: String) -> UIColor? {
         "magenta": .magenta,
         "purple": .purple,
         "gray": .gray,
-        "brown": .brown
+        "brown": .brown,
+        "white": .white
     ]
     return mapping[name]
 }
@@ -76,7 +83,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         window = UIWindow(windowScene: scene)
         navigator = NavigatorImpl(window: window!, sceneFactory: TestSceneFactory())
-        navigator?.set(rootSceneModel: SceneModel(sceneName: "red"))
+        navigator?.set(rootSceneModel: SceneModel(sceneName: "white"))
         window?.makeKeyAndVisible()
     }
 

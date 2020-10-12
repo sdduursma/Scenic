@@ -1,4 +1,5 @@
 import UIKit
+import os
 
 extension String {
 
@@ -87,6 +88,7 @@ public class NavigatorImpl: Navigator, EventDelegate {
 
     /// Asynchronously sets the new scene hierarchy. This operation is thread-safe.
     public func send(rootSceneModel: SceneModel, options: [String: AnyHashable]?, completion: (() -> Void)?) {
+        print("[Scenic] banana hammock")
         serial.async { [weak self] in
             // TODO: Call completion handler if self is nil?
             guard let self = self else { return }
@@ -172,10 +174,14 @@ public class NavigatorImpl: Navigator, EventDelegate {
                 // Present new presented
                 // TODO: Dismiss any currently presented VC?
                 group.enter()
+                let vc = "\(presented.scene.viewController.title ?? presented.scene.viewController)"
+                os_log("[Scenic] present view controller: " + vc)
                 scene.viewController.present(presented.scene.viewController, animated: animated, completion: { [weak self] in
                     // TODO: No force unwrap
-                    self?._buildViewControllerHierarchy(from: presented, oldHierarchy: nil, newHierarchy: newHierarchy.presented!, group: group)
-                    group.leave()
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
+                        self?._buildViewControllerHierarchy(from: presented, oldHierarchy: nil, newHierarchy: newHierarchy.presented!, group: group)
+                        group.leave()
+                    })
                 })
             } else if newHierarchy.presented == nil {
                 // Dismiss old presented
@@ -200,6 +206,7 @@ public class NavigatorImpl: Navigator, EventDelegate {
                         })
                     })
                 } else {
+                    // TODO: Wait until old VC is dismissed?
                     // Directly present the new VC.
                     group.enter()
                     scene.viewController.present(presented.scene.viewController, animated: animated, completion: { [weak self] in
