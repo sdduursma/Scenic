@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		66C4B291253AEFA70073BABC /* Scenic.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66C4B290253AEFA70073BABC /* Scenic.framework */; };
+		66C4B292253AEFA70073BABC /* Scenic.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 66C4B290253AEFA70073BABC /* Scenic.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		66DB27DE24A4F2D20047BF38 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66DB27DD24A4F2D20047BF38 /* AppDelegate.swift */; };
 		66DB27E024A4F2D20047BF38 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66DB27DF24A4F2D20047BF38 /* SceneDelegate.swift */; };
 		66DB27E224A4F2D20047BF38 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66DB27E124A4F2D20047BF38 /* ViewController.swift */; };
@@ -33,7 +35,22 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		66C4B293253AEFA80073BABC /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				66C4B292253AEFA70073BABC /* Scenic.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		66C4B290253AEFA70073BABC /* Scenic.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Scenic.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		66DB27DA24A4F2D20047BF38 /* ScenicTestHarness.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScenicTestHarness.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		66DB27DD24A4F2D20047BF38 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		66DB27DF24A4F2D20047BF38 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -54,6 +71,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				66C4B291253AEFA70073BABC /* Scenic.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -74,6 +92,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		66C4B28F253AEFA70073BABC /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				66C4B290253AEFA70073BABC /* Scenic.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		66DB27D124A4F2D20047BF38 = {
 			isa = PBXGroup;
 			children = (
@@ -81,6 +107,7 @@
 				66DB27F324A4F2D40047BF38 /* ScenicTestHarnessTests */,
 				66DB27FE24A4F2D40047BF38 /* ScenicTestHarnessUITests */,
 				66DB27DB24A4F2D20047BF38 /* Products */,
+				66C4B28F253AEFA70073BABC /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -135,6 +162,7 @@
 				66DB27D624A4F2D20047BF38 /* Sources */,
 				66DB27D724A4F2D20047BF38 /* Frameworks */,
 				66DB27D824A4F2D20047BF38 /* Resources */,
+				66C4B293253AEFA80073BABC /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
