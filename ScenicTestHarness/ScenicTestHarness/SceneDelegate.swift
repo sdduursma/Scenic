@@ -17,6 +17,8 @@ class ColorViewController: UIViewController {
         self.colorName = colorName
 
         super.init(nibName: nil, bundle: nil)
+
+        title = colorName
     }
 
     required init?(coder: NSCoder) {
@@ -25,8 +27,6 @@ class ColorViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        title = colorName
 
         let color = nameToColor(colorName) ?? .black
         view.backgroundColor = color
