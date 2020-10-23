@@ -169,51 +169,56 @@ public class NavigatorImpl: Navigator, EventDelegate {
         let scene = retainer.scene
         scene.configure(with: retainer.customData)
         scene.embed(retainer.children.map { $0.scene }, options: options)
+        // TODO: If these are not equal, that could mean that a child is not equal
         if newHierarchy.presented != oldHierarchy?.presented {
-            if oldHierarchy?.presented == nil, let presented = retainer.presented {
-                // Present new presented
-                // TODO: Dismiss any currently presented VC?
-                group.enter()
-                let vc = "\(presented.scene.viewController.title ?? presented.scene.viewController)"
-                os_log("[Scenic] present view controller: " + vc)
-                scene.viewController.present(presented.scene.viewController, animated: animated, completion: { [weak self] in
-                    // TODO: No force unwrap
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
-                        self?._buildViewControllerHierarchy(from: presented, oldHierarchy: nil, newHierarchy: newHierarchy.presented!, group: group)
+            if oldHierarchy?.presented?.sceneName != newHierarchy.presented?.sceneName {
+                if oldHierarchy?.presented == nil, let presented = retainer.presented {
+                    // Present new presented
+                    // TODO: Dismiss any currently presented VC?
+                    group.enter()
+                    // TODO: Improve logging
+                    let vc = "\(presented.scene.viewController.title ?? "\(presented.scene.viewController)")"
+                    NSLog("[Scenic] present view controller: " + vc)
+                    scene.viewController.present(presented.scene.viewController, animated: animated, completion: { [weak self] in
+                        // TODO: No force unwrap
+                        self?._buildViewControllerHierarchy(from: presented, oldHierarchy: nil, newHierarchy: newHierarchy.presented!, group: group, options)
                         group.leave()
                     })
-                })
-            } else if newHierarchy.presented == nil {
-                // Dismiss old presented
-                if let presentedVc = scene.viewController.presentedViewController,
-                   !presentedVc.isBeingDismissed {
-                    group.enter()
-                    scene.viewController.dismiss(animated: animated, completion: {
-                        group.leave()
-                    })
-                }
-            } else if let presented = retainer.presented {
-                // Replace old presented with new presented
-                if let oldPresentedVc = scene.viewController.presentedViewController,
-                   !oldPresentedVc.isBeingDismissed {
-                    // Dismiss any VC that's currently presented.
-                    group.enter()
-                    scene.viewController.dismiss(animated: animated, completion: {
+                } else if newHierarchy.presented == nil {
+                    // Dismiss old presented
+                    if let presentedVc = scene.viewController.presentedViewController,
+                       !presentedVc.isBeingDismissed {
+                        NSLog("[Scenic] dismiss view controller: " + presentedVc.toScenicDebugString())
+                        group.enter()
+                        scene.viewController.dismiss(animated: animated, completion: {
+                            group.leave()
+                        })
+                    } else {
+                        NSLog("[Scenic] unable to dismiss view controller")
+                    }
+                } else if let presented = retainer.presented {
+                    // Replace old presented with new presented
+                    if let oldPresentedVc = scene.viewController.presentedViewController,
+                       !oldPresentedVc.isBeingDismissed {
+                        // Dismiss any VC that's currently presented.
+                        group.enter()
+                        scene.viewController.dismiss(animated: animated, completion: {
+                            scene.viewController.present(presented.scene.viewController, animated: animated, completion: { [weak self] in
+                                // TODO: No force unwrap
+                                self?._buildViewControllerHierarchy(from: presented, oldHierarchy: nil, newHierarchy: newHierarchy.presented!, group: group)
+                                group.leave()
+                            })
+                        })
+                    } else {
+                        // TODO: Wait until old VC is dismissed?
+                        // Directly present the new VC.
+                        group.enter()
                         scene.viewController.present(presented.scene.viewController, animated: animated, completion: { [weak self] in
                             // TODO: No force unwrap
                             self?._buildViewControllerHierarchy(from: presented, oldHierarchy: nil, newHierarchy: newHierarchy.presented!, group: group)
                             group.leave()
                         })
-                    })
-                } else {
-                    // TODO: Wait until old VC is dismissed?
-                    // Directly present the new VC.
-                    group.enter()
-                    scene.viewController.present(presented.scene.viewController, animated: animated, completion: { [weak self] in
-                        // TODO: No force unwrap
-                        self?._buildViewControllerHierarchy(from: presented, oldHierarchy: nil, newHierarchy: newHierarchy.presented!, group: group)
-                        group.leave()
-                    })
+                    }
                 }
             }
         }
@@ -251,6 +256,36 @@ public class NavigatorImpl: Navigator, EventDelegate {
         group.leave()
     }
 
+    private func dismissIfNeeded(_ old: SceneModel, _ new: SceneModel, _ completion: (() -> Void)?) {
+        if old != new {
+            if old.presented != new.presented {
+                if old.presented?.sceneName != new.presented?.sceneName && old.presented != nil {
+                    dismiss(old, completion)
+                } else {
+                    completion?()
+                }
+            } else {
+                let oldAndNewChildren = zip(old.children, new.children)
+                for (oc, nc) in oldAndNewChildren {
+                    dismissIfNeeded(old, new, completion)
+                }
+                completion?()
+            }
+        } else {
+            completion?()
+        }
+    }
+
+    private func dismiss(_ sceneModel: SceneModel, _ completion: (() -> Void)? = nil) {
+        guard let scene = acquireScene(for: sceneModel.sceneName) else {
+            // TODO
+            NSLog("[Scenic] Inconsistency warning")
+            return
+        }
+        // TODO: Options
+        scene.viewController.dismiss(animated: true, completion: completion)
+    }
+
     private func acquireScene(for sceneName: String) -> Scene? {
         if let scene = rootSceneRetainer?.sceneRetainer(forSceneName: sceneName)?.scene {
             return scene
@@ -283,3 +318,21 @@ public class NavigatorImpl: Navigator, EventDelegate {
         sceneToName[ObjectIdentifier(scene)]
     }
 }
+
+func outerZip()
+
+protocol ScenicDebugStringConvertible {
+
+    func toScenicDebugString() -> String
+}
+
+extension UIViewController: ScenicDebugStringConvertible {
+
+    func toScenicDebugString() -> String {
+        return title ?? "\(self)"
+    }
+}
+
+//func printS(_ message: String, _ args: Any?...) -> String {
+//    var message
+//}

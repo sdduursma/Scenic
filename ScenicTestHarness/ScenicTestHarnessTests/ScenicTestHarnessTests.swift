@@ -35,14 +35,14 @@ class ScenicTestHarnessTests: XCTestCase {
         }
         wait(for: [exp1], timeout: 240)
 
-//        let exp2 = expectation(description: "")
-//        navigator.send(rootSceneModel: SceneModel(sceneName: "red",
-//                                                  presented: SceneModel(sceneName: "orange",
-//                                                                        presented: SceneModel(sceneName: "green"))),
-//                       options: ["animated": true]) {
-//            exp2.fulfill()
-//        }
-//        wait(for: [exp2], timeout: 240)
+        let exp2 = expectation(description: "")
+        navigator.send(rootSceneModel: SceneModel(sceneName: "red",
+                                                  presented: SceneModel(sceneName: "orange",
+                                                                        presented: SceneModel(sceneName: "green"))),
+                       options: ["animated": true]) {
+            exp2.fulfill()
+        }
+        wait(for: [exp2], timeout: 240)
     }
 
     func testSetSimpleSceneModel() throws {
