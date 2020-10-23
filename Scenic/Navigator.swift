@@ -21,7 +21,7 @@ public protocol Navigator {
     func addEventWatcher(_ watcher: @escaping (NavigationEvent) -> Void)
 }
 
-extension Navigator {
+public extension Navigator {
 
     func set(rootSceneModel: SceneModel, _ options: [String: AnyHashable]?) {
         set(rootSceneModel: rootSceneModel)
