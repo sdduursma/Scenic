@@ -256,6 +256,61 @@ public class NavigatorImpl: Navigator, EventDelegate {
         group.leave()
     }
 
+    static func plan(_ old: SceneModel?, _ new: SceneModel?) -> [AnyHashable] {
+        var steps: [AnyHashable] = []
+        if let old = old {
+            steps.append(contentsOf: dismissals(old, new))
+        }
+        return steps
+    }
+
+    // TODO: Should old be optional ?
+    /// Compares `old` and `new`. ...
+    static func dismissals(_ old: SceneModel, _ new: SceneModel?) -> [AnyHashable] {
+        let steps: [AnyHashable]
+        if old == new {
+            steps = []
+        } else {
+            let dismissal: AnyHashable?
+            let childDismissals: [AnyHashable]
+            if old.sceneName != new?.sceneName {
+                if old.presented != nil {
+                    dismissal = Dismissal(old.sceneName)
+                } else {
+                    dismissal = nil
+                }
+                childDismissals = dismissals(old.children, nil)
+            } else {
+                if let oldPresentedName = old.presented?.sceneName,
+                   oldPresentedName != new?.presented?.sceneName {
+                    dismissal = Dismissal(old.sceneName)
+                } else {
+                    dismissal = nil
+                }
+                childDismissals = dismissals(old.children, new?.children)
+            }
+
+            steps = (dismissal.map { [$0] } ?? []) + childDismissals
+        }
+        return steps
+    }
+
+    static func dismissals(_ oldChildren: [SceneModel], _ newChildren: [SceneModel]?) -> [AnyHashable] {
+        var childDismissals: [AnyHashable] = []
+        for (i, oldChild) in oldChildren.enumerated() {
+            let newChild: SceneModel?
+            if i < newChildren?.count ?? 0 {
+                newChild = newChildren![i]
+            } else {
+                newChild = nil
+            }
+            // TODO: Will there be tail recursion?
+            childDismissals.append(contentsOf: dismissals(oldChild, newChild))
+        }
+        return childDismissals
+    }
+
+    /// Compares `old` and `new`. If the root scene of `old` or any child of the root presents a scene and it doesn't present that seen anymore in `new`, the presented scene is dismissed.
     private func dismissIfNeeded(_ old: SceneModel, _ new: SceneModel, _ completion: (() -> Void)?) {
         if old != new {
             if old.presented != new.presented {
@@ -265,11 +320,18 @@ public class NavigatorImpl: Navigator, EventDelegate {
                     completion?()
                 }
             } else {
-                let oldAndNewChildren = zip(old.children, new.children)
-                for (oc, nc) in oldAndNewChildren {
-                    dismissIfNeeded(old, new, completion)
+                let group = DispatchGroup()
+                // TODO: Use a kind of outer zip
+                for (oc, nc) in zip(old.children, new.children) {
+                    group.enter()
+                    dismissIfNeeded(oc, nc, {
+                        group.leave()
+                    })
                 }
-                completion?()
+                // TODO: Should completion even be optional here?
+                // TODO: Does `group` need to be retained by an outer scope or is it
+                // sufficient to capture it with the closure above.
+                completion.map { group.notify(queue: .main, execute: $0) }
             }
         } else {
             completion?()
@@ -277,6 +339,7 @@ public class NavigatorImpl: Navigator, EventDelegate {
     }
 
     private func dismiss(_ sceneModel: SceneModel, _ completion: (() -> Void)? = nil) {
+        // TODO: This shouldn't be acquire because there's no reason to instantiate a scene.
         guard let scene = acquireScene(for: sceneModel.sceneName) else {
             // TODO
             NSLog("[Scenic] Inconsistency warning")
@@ -319,7 +382,25 @@ public class NavigatorImpl: Navigator, EventDelegate {
     }
 }
 
-func outerZip()
+//func outerZip()
+
+protocol BuildStep: Hashable {
+
+    func execute(/* some args */ _ completion: (() -> Void)?)
+}
+
+struct Dismissal: BuildStep {
+
+    /// The name of the target scene.
+    var target: String
+
+    init(_ target: String) {
+        self.target = target
+    }
+
+    func execute(_ completion: (() -> Void)?) {
+    }
+}
 
 protocol ScenicDebugStringConvertible {
 

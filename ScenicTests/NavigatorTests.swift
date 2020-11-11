@@ -88,4 +88,36 @@ class NavigatorTests: XCTestCase {
         expect(viewControllerA0).to(beIdenticalTo(viewControllerA1))
         expect(viewControllerB0).to(beIdenticalTo(viewControllerB1))
     }
+
+    func testPlanSimpleDismissal() {
+        let old = SceneModel(sceneName: "a", presented: SceneModel(sceneName: "b"))
+        let new = SceneModel(sceneName: "a")
+        XCTAssertEqual(NavigatorImpl.plan(old, new), [Dismissal("a")])
+    }
+
+    func testPlanNestedDismissal() {
+        let old = SceneModel(sceneName: "a",
+                             presented: SceneModel(sceneName: "b",
+                                                   presented: SceneModel(sceneName: "c")))
+        let new = SceneModel(sceneName: "a")
+        XCTAssertEqual(NavigatorImpl.plan(old, new), [Dismissal("a")])
+    }
+
+    func testPlanDismiss1Deep() {
+        let old = SceneModel(sceneName: "a",
+                             presented: SceneModel(sceneName: "b",
+                                                   presented: SceneModel(sceneName: "c")))
+        let new = SceneModel(sceneName: "a",
+                             presented: SceneModel(sceneName: "b"))
+        XCTAssertEqual(NavigatorImpl.plan(old, new), [Dismissal("b")])
+    }
+
+    func testPlanReplacement() {
+        let old = SceneModel(sceneName: "a",
+                             presented: SceneModel(sceneName: "b"))
+        let new = SceneModel(sceneName: "a",
+                             presented: SceneModel(sceneName: "c"))
+        // TODO: Assert Presentation("c")
+        XCTAssertEqual(NavigatorImpl.plan(old, new), [Dismissal("a")])
+    }
 }
