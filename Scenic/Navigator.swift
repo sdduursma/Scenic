@@ -256,10 +256,18 @@ public class NavigatorImpl: Navigator, EventDelegate {
         group.leave()
     }
 
-    static func plan(_ old: SceneModel?, _ new: SceneModel?) -> [AnyHashable] {
+    static func plan(_ old: SceneModel?, _ new: SceneModel) -> [AnyHashable] {
         var steps: [AnyHashable] = []
         if let old = old {
             steps.append(contentsOf: dismissals(old, new))
+        }
+        steps.append(embeddings(old, new))
+        steps.append(configurations(old, new))
+        if let p = presentation(old, new) {
+            steps.append(p)
+            steps.append(contentsOf: plan(nil, findPresented(new)!))
+        } else if let presented = findPresented(new) {
+            steps.append(contentsOf: plan(nil, presented))
         }
         return steps
     }
@@ -308,6 +316,46 @@ public class NavigatorImpl: Navigator, EventDelegate {
             childDismissals.append(contentsOf: dismissals(oldChild, newChild))
         }
         return childDismissals
+    }
+
+    static func embedSteps(_ old)
+
+    static func embedSteps(_ old: SceneModel?, _ new: SceneModel, _ steps: inout [AnyHashable] = []) -> [AnyHashable] {
+        let additionalStep: AnyHashable?
+        if old == new {
+            additionalSteps = nil
+        } else {
+            if (old?.sceneName == new.sceneName && old?.children != new.children) || old == nil {
+                additionalStep = EmbedStep(new)
+            } else {
+                additionalStep = nil
+            }
+        }
+        return additionalStep.map { steps.app }
+    }
+
+    static func configurations(_ old: SceneModel?, _ new: SceneModel) -> [AnyHashable] {
+        return []
+    }
+
+    static func presentation(_ old: SceneModel?, _ new: SceneModel) -> AnyHashable? {
+        return nil
+    }
+
+    static func findPresented(_ sceneModel: SceneModel) -> SceneModel? {
+        if let p = sceneModel.presented {
+            return p
+        }
+        return findPresented(sceneModel.children)
+    }
+
+    static func findPresented(_ sceneModels: [SceneModel]) -> SceneModel? {
+        for s in sceneModels {
+            if let p = findPresented(s) {
+                return p
+            }
+        }
+        return nil
     }
 
     /// Compares `old` and `new`. If the root scene of `old` or any child of the root presents a scene and it doesn't present that seen anymore in `new`, the presented scene is dismissed.
@@ -389,6 +437,21 @@ protocol BuildStep: Hashable {
     func execute(/* some args */ _ completion: (() -> Void)?)
 }
 
+struct EmbedStep: BuildStep {
+
+    var target: String
+
+//    var children: [SceneModel]
+
+    init(_ target: String, _ children: [SceneModel]) {
+        self.target = target
+//        self.children = children
+    }
+
+    func execute(_ completion: (() -> Void)?) {
+    }
+}
+
 struct Dismissal: BuildStep {
 
     /// The name of the target scene.
@@ -416,4 +479,62 @@ extension UIViewController: ScenicDebugStringConvertible {
 
 //func printS(_ message: String, _ args: Any?...) -> String {
 //    var message
+//}
+
+struct PresentationLevelPlan {
+
+    var dismissStep: Dismissal?
+
+    var embedSteps: [EmbedStep]
+
+    var sceneModel: SceneModel?
+
+    func steps() -> [AnyHashable] {
+        [dismissStep] + embedSteps as [AnyHashable]
+    }
+}
+
+struct Plan {
+
+    var presentationLevels: [PresentationLevelPlan]
+
+    /// The flattened sequence of all the steps in the plan.
+    func steps() -> [AnyHashable] {
+        presentationLevels.compactMap { $0.steps() }
+    }
+}
+
+struct Context {
+
+    var presentationLevel: Int = 0
+}
+
+enum Change {
+    case same, add, remove, replace
+}
+
+class Diff {
+
+    let change: Change
+
+    let children: Diff
+
+    let presented: Diff?
+
+    init(_ change: Change, children: Diff, presented: Diff? = nil) {
+        self.change = change
+        self.children = children
+        self.presented = presented
+    }
+
+    let sceneModel: SceneModel
+
+    let sceneModelChildren: [SceneModel]? = nil
+}
+//
+//struct Diff {
+//
+//    var change: Change
+//
+//
 //}
