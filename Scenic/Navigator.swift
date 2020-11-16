@@ -259,15 +259,16 @@ public class NavigatorImpl: Navigator, EventDelegate {
     static func plan(_ old: SceneModel?, _ new: SceneModel) -> [AnyHashable] {
         var steps: [AnyHashable] = []
         if let old = old {
+            // TODO: inout?
             steps.append(contentsOf: dismissals(old, new))
         }
-        steps.append(embeddings(old, new))
-        steps.append(configurations(old, new))
-        if let p = presentation(old, new) {
+        steps.append(contentsOf: embedSteps(old, new))
+//        steps.append(contentsOf: configurations(old, new))
+        if let p = presentationStep(old, new) {
             steps.append(p)
             steps.append(contentsOf: plan(nil, findPresented(new)!))
         } else if let presented = findPresented(new) {
-            steps.append(contentsOf: plan(nil, presented))
+            steps.append(contentsOf: plan(findPresented(old!)!, presented))
         }
         return steps
     }
@@ -318,27 +319,71 @@ public class NavigatorImpl: Navigator, EventDelegate {
         return childDismissals
     }
 
-    static func embedSteps(_ old)
+    private static func embedSteps(_ old: SceneModel?, _ new: SceneModel) -> [AnyHashable] {
+        var steps: [AnyHashable] = []
+        embedSteps(old, new, &steps)
+        return steps
+    }
 
-    static func embedSteps(_ old: SceneModel?, _ new: SceneModel, _ steps: inout [AnyHashable] = []) -> [AnyHashable] {
-        let additionalStep: AnyHashable?
+    // TODO: Does `inout` really provide better performance than returning?
+    private static func embedSteps(_ old: SceneModel?, _ new: SceneModel, _ steps: inout [AnyHashable]) {
         if old == new {
-            additionalSteps = nil
+            return
         } else {
-            if (old?.sceneName == new.sceneName && old?.children != new.children) || old == nil {
-                additionalStep = EmbedStep(new)
-            } else {
-                additionalStep = nil
+            if !new.children.isEmpty {
+                // Embed steps are performed depth-first.
+                embedSteps(old?.children, new.children, &steps)
+                if (old?.sceneName != new.sceneName || old?.children.map(\.sceneName) != new.children.map(\.sceneName)) {
+                    steps.append(EmbedStep(new))
+                }
             }
         }
-        return additionalStep.map { steps.app }
+    }
+
+    private static func embedSteps(_ oldChildren: [SceneModel]?, _ newChildren: [SceneModel], _ steps: inout [AnyHashable]) {
+        for (i, newChild) in newChildren.enumerated() {
+            let oldChild: SceneModel?
+            if let oldChildren = oldChildren,
+               i < oldChildren.count {
+                oldChild = oldChildren[i]
+            } else {
+                oldChild = nil
+            }
+            embedSteps(oldChild, newChild, &steps)
+        }
     }
 
     static func configurations(_ old: SceneModel?, _ new: SceneModel) -> [AnyHashable] {
         return []
     }
 
-    static func presentation(_ old: SceneModel?, _ new: SceneModel) -> AnyHashable? {
+    static func presentationStep(_ old: SceneModel?, _ new: SceneModel) -> AnyHashable? {
+        let step: AnyHashable?
+        if old == new {
+            step = nil
+        } else {
+            if new.presented != nil && (old?.sceneName != new.sceneName || old?.presented?.sceneName != new.presented?.sceneName) {
+                step = PresentationStep(new)
+            } else {
+                step = presentationStep(old?.children, new.children)
+            }
+        }
+        return step
+    }
+
+    static func presentationStep(_ oldChildren: [SceneModel]?, _ newChildren: [SceneModel]) -> AnyHashable? {
+        for (i, newChild) in newChildren.enumerated() {
+            let oldChild: SceneModel?
+            // TODO Coalesce?
+            if i < oldChildren?.count ?? 0 {
+                oldChild = oldChildren![i]
+            } else {
+                oldChild = nil
+            }
+            if let step = presentationStep(oldChild, newChild) {
+                return step
+            }
+        }
         return nil
     }
 
@@ -432,20 +477,30 @@ public class NavigatorImpl: Navigator, EventDelegate {
 
 //func outerZip()
 
+// TODO: Should conform to Hashable.
 protocol BuildStep: Hashable {
 
     func execute(/* some args */ _ completion: (() -> Void)?)
 }
 
+struct PresentationStep: BuildStep {
+
+    var target: SceneModel
+
+    init(_ target: SceneModel) {
+        self.target = target
+    }
+
+    func execute(_ completion: (() -> Void)?) {
+    }
+}
+
 struct EmbedStep: BuildStep {
 
-    var target: String
+    var target: SceneModel
 
-//    var children: [SceneModel]
-
-    init(_ target: String, _ children: [SceneModel]) {
+    init(_ target: SceneModel) {
         self.target = target
-//        self.children = children
     }
 
     func execute(_ completion: (() -> Void)?) {
@@ -479,62 +534,4 @@ extension UIViewController: ScenicDebugStringConvertible {
 
 //func printS(_ message: String, _ args: Any?...) -> String {
 //    var message
-//}
-
-struct PresentationLevelPlan {
-
-    var dismissStep: Dismissal?
-
-    var embedSteps: [EmbedStep]
-
-    var sceneModel: SceneModel?
-
-    func steps() -> [AnyHashable] {
-        [dismissStep] + embedSteps as [AnyHashable]
-    }
-}
-
-struct Plan {
-
-    var presentationLevels: [PresentationLevelPlan]
-
-    /// The flattened sequence of all the steps in the plan.
-    func steps() -> [AnyHashable] {
-        presentationLevels.compactMap { $0.steps() }
-    }
-}
-
-struct Context {
-
-    var presentationLevel: Int = 0
-}
-
-enum Change {
-    case same, add, remove, replace
-}
-
-class Diff {
-
-    let change: Change
-
-    let children: Diff
-
-    let presented: Diff?
-
-    init(_ change: Change, children: Diff, presented: Diff? = nil) {
-        self.change = change
-        self.children = children
-        self.presented = presented
-    }
-
-    let sceneModel: SceneModel
-
-    let sceneModelChildren: [SceneModel]? = nil
-}
-//
-//struct Diff {
-//
-//    var change: Change
-//
-//
 //}

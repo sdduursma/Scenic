@@ -117,7 +117,20 @@ class NavigatorTests: XCTestCase {
                              presented: SceneModel(sceneName: "b"))
         let new = SceneModel(sceneName: "a",
                              presented: SceneModel(sceneName: "c"))
-        // TODO: Assert Presentation("c")
-        XCTAssertEqual(NavigatorImpl.plan(old, new), [Dismissal("a")])
+        XCTAssertEqual(NavigatorImpl.plan(old, new), [Dismissal("a"),
+                                                      PresentationStep(SceneModel(sceneName: "a",
+                                                                                  presented: SceneModel(sceneName: "c")))])
+    }
+
+    func testPlanReplacePresentedByChild() {
+        let old = SceneModel(sceneName: "a",
+                             children: [SceneModel(sceneName: "b",
+                                                   presented: SceneModel(sceneName: "c"))])
+        let new = SceneModel(sceneName: "a",
+                             children: [SceneModel(sceneName: "b",
+                                                   presented: SceneModel(sceneName: "d"))])
+        XCTAssertEqual(NavigatorImpl.plan(old, new), [Dismissal("b"),
+                                                      PresentationStep(SceneModel(sceneName: "b",
+                                                                                  presented: SceneModel(sceneName: "d")))])
     }
 }
