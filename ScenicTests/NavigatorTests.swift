@@ -133,4 +133,29 @@ class NavigatorTests: XCTestCase {
                                                       PresentationStep(SceneModel(sceneName: "b",
                                                                                   presented: SceneModel(sceneName: "d")))])
     }
+
+    func testPlanDismissAndPresentFromSibling() {
+        let old = SceneModel(sceneName: "tabBar",
+                             children: [SceneModel(sceneName: "red",
+                                                   presented: SceneModel(sceneName: "yellow")),
+                                        SceneModel(sceneName: "orange")])
+        let new = SceneModel(sceneName: "tabBar",
+                             children: [SceneModel(sceneName: "red"),
+                                        SceneModel(sceneName: "orange",
+                                                   presented: SceneModel(sceneName: "green"))])
+        XCTAssertEqual(NavigatorImpl.plan(old, new), [Dismissal("red"),
+                                                      PresentationStep(SceneModel(sceneName: "orange",
+                                                                                  presented: SceneModel(sceneName: "green")))])
+    }
+
+    func testPlanFirstTime() {
+        let new = SceneModel(sceneName: "red",
+                             children: [SceneModel(sceneName: "orange",
+                                                   children: [SceneModel(sceneName: "blue")])])
+        XCTAssertEqual(NavigatorImpl.plan(nil, new), [EmbedStep(SceneModel(sceneName: "orange",
+                                                                           children: [SceneModel(sceneName: "blue")])),
+                                                      EmbedStep(SceneModel(sceneName: "red",
+                                                                           children: [SceneModel(sceneName: "orange",
+                                                                                                 children: [SceneModel(sceneName: "blue")])]))])
+    }
 }

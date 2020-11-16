@@ -88,7 +88,6 @@ public class NavigatorImpl: Navigator, EventDelegate {
 
     /// Asynchronously sets the new scene hierarchy. This operation is thread-safe.
     public func send(rootSceneModel: SceneModel, options: [String: AnyHashable]?, completion: (() -> Void)?) {
-        print("[Scenic] banana hammock")
         serial.async { [weak self] in
             // TODO: Call completion handler if self is nil?
             guard let self = self else { return }
@@ -120,7 +119,10 @@ public class NavigatorImpl: Navigator, EventDelegate {
         rootSceneRetainer = retainerHierarchy(from: rootSceneModel)
         if let retainer = rootSceneRetainer {
             window.rootViewController = retainer.scene.viewController
-            buildViewControllerHierarchy(from: retainer, oldHierarchy: oldHierarchy, newHierarchy: rootSceneModel, options: options, completion)
+            // TODO: plan to return [BuildStep]
+            let plan = NavigatorImpl.plan(oldHierarchy, rootSceneModel) as! [BuildStep]
+            execute(plan, completion)
+//            buildViewControllerHierarchy(from: retainer, oldHierarchy: oldHierarchy, newHierarchy: rootSceneModel, options: options, completion)
         } else {
             completion?()
         }
@@ -442,7 +444,8 @@ public class NavigatorImpl: Navigator, EventDelegate {
         scene.viewController.dismiss(animated: true, completion: completion)
     }
 
-    private func acquireScene(for sceneName: String) -> Scene? {
+    // TODO: private
+    func acquireScene(for sceneName: String) -> Scene? {
         if let scene = rootSceneRetainer?.sceneRetainer(forSceneName: sceneName)?.scene {
             return scene
         }
@@ -473,17 +476,53 @@ public class NavigatorImpl: Navigator, EventDelegate {
     private func sceneName(for scene: Scene) -> String? {
         sceneToName[ObjectIdentifier(scene)]
     }
+
+    private func execute(_ plan: [BuildStep],
+                         _ completion: (() -> Void)? = nil) {
+        if let step = plan.first {
+            step.execute(self, { [weak self] in
+                // TODO: This could blow the stack.
+                // dropFirst() is efficient, but returns an ArraySlice.
+                self?.execute(plan.dropFirst(), completion)
+            })
+        } else {
+            completion?()
+        }
+    }
+
+    // TODO: Can we reduce the duplication?
+    private func execute(_ plan: ArraySlice<BuildStep>,
+                         _ completion: (() -> Void)? = nil) {
+        if let step = plan.first {
+            step.execute(self, { [weak self] in
+                // TODO: This could blow the stack.
+                // dropFirst() is efficient, but returns an ArraySlice.
+                self?.execute(plan.dropFirst(), completion)
+            })
+        } else {
+            completion?()
+        }
+    }
 }
 
 //func outerZip()
 
 // TODO: Should conform to Hashable.
-protocol BuildStep: Hashable {
+protocol BuildStep {
 
-    func execute(/* some args */ _ completion: (() -> Void)?)
+    // TODO: Don't pass the whole Navigator
+    func execute(_ navigator: NavigatorImpl, _ completion: (() -> Void)?)
 }
 
-struct PresentationStep: BuildStep {
+extension BuildStep where Self: Equatable {
+
+    func isEqual(to other: BuildStep) -> Bool {
+        if let o = other as? Self { return self == o }
+        return false
+    }
+}
+
+struct PresentationStep: BuildStep, Hashable {
 
     var target: SceneModel
 
@@ -491,11 +530,16 @@ struct PresentationStep: BuildStep {
         self.target = target
     }
 
-    func execute(_ completion: (() -> Void)?) {
+    func execute(_ navigator: NavigatorImpl, _ completion: (() -> Void)?) {
+        // TODO: Handle failure to acquire scene elsewhere
+        let targetScene = navigator.acquireScene(for: target.sceneName)!
+        let presentedScene = navigator.acquireScene(for: target.presented!.sceneName)!
+        // TODO: animated option
+        targetScene.viewController.present(presentedScene.viewController, animated: true, completion: completion)
     }
 }
 
-struct EmbedStep: BuildStep {
+struct EmbedStep: BuildStep, Hashable {
 
     var target: SceneModel
 
@@ -503,11 +547,17 @@ struct EmbedStep: BuildStep {
         self.target = target
     }
 
-    func execute(_ completion: (() -> Void)?) {
+    func execute(_ navigator: NavigatorImpl, _ completion: (() -> Void)?) {
+        // TODO: Handle failure elsewhere
+        let targetScene = navigator.acquireScene(for: target.sceneName)!
+        let childScenes = target.children.compactMap { navigator.acquireScene(for: $0.sceneName) }
+        // TODO: Options
+        targetScene.embed(childScenes, options: [:])
+        completion?()
     }
 }
 
-struct Dismissal: BuildStep {
+struct Dismissal: BuildStep, Hashable {
 
     /// The name of the target scene.
     var target: String
@@ -516,7 +566,14 @@ struct Dismissal: BuildStep {
         self.target = target
     }
 
-    func execute(_ completion: (() -> Void)?) {
+    func execute(_ navigator: NavigatorImpl, _ completion: (() -> Void)?) {
+        // TODO: Handle failure elsewhere
+        // TODO: Don't acquire because we don't want to instantiate if it doesn't exist.
+        let targetScene = navigator.acquireScene(for: target)!
+        if let presented = targetScene.viewController.presentedViewController, !presented.isBeingDismissed {
+            // TODO: animated option
+            targetScene.viewController.dismiss(animated: true, completion: completion)
+        }
     }
 }
 

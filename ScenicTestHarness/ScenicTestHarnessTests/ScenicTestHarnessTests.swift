@@ -53,7 +53,7 @@ class ScenicTestHarnessTests: XCTestCase {
         wait(for: [exp], timeout: 10)
     }
 
-    func testSiblingDismissAndPresent() throws {
+    func testPlanDismissAndPresentFromSibling() throws {
         // TODO: This test will cause an error like the following to be logged:
         // Presenting view controllers on detached view controllers is discouraged <ScenicTestHarness.ColorViewController: 0x7fc2a2421ec0>.
 
