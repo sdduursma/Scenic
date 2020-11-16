@@ -9,7 +9,21 @@ fileprivate class Box<T> {
     }
 }
 
-public struct SceneModel {
+extension Box: Equatable where T: Equatable {
+
+    static func == (lhs: Box<T>, rhs: Box<T>) -> Bool {
+        lhs.value == rhs.value
+    }
+}
+
+extension Box: Hashable where T: Hashable {
+
+    func hash(into hasher: inout Hasher) {
+        value.hash(into: &hasher)
+    }
+}
+
+public struct SceneModel: Hashable {
 
     public var sceneName: String
     public var children: [SceneModel]
@@ -35,28 +49,6 @@ public struct SceneModel {
         self.children = children
         self._presented = presented.map { Box($0) }
         self.customData = customData
-    }
-}
-
-extension SceneModel: Equatable {
-
-    public static func ==(left: SceneModel, right: SceneModel) -> Bool {
-        return left.sceneName == right.sceneName
-            && left.children == right.children
-            && left.presented == right.presented
-            && isCustomDataEqual(left, right)
-    }
-
-    private static func isCustomDataEqual(_ left: SceneModel, _ right: SceneModel) -> Bool {
-        if let leftCustomData = left.customData,
-            let rightCustomData = right.customData,
-            leftCustomData == rightCustomData {
-            return true
-        } else if left.customData == nil && right.customData == nil {
-            return true
-        } else {
-            return false
-        }
     }
 }
 
