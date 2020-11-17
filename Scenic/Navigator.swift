@@ -120,7 +120,7 @@ public class NavigatorImpl: Navigator, EventDelegate {
         if let retainer = rootSceneRetainer {
             window.rootViewController = retainer.scene.viewController
             // TODO: plan to return [BuildStep]
-            let plan = NavigatorImpl.plan(oldHierarchy, rootSceneModel) as! [BuildStep]
+            let plan = NavigatorImpl.plan(oldHierarchy, rootSceneModel) as! [MaterializationStep]
             execute(plan, completion)
 //            buildViewControllerHierarchy(from: retainer, oldHierarchy: oldHierarchy, newHierarchy: rootSceneModel, options: options, completion)
         } else {
@@ -286,7 +286,7 @@ public class NavigatorImpl: Navigator, EventDelegate {
             let childDismissals: [AnyHashable]
             if old.sceneName != new?.sceneName {
                 if old.presented != nil {
-                    dismissal = Dismissal(old.sceneName)
+                    dismissal = DismissStep(old.sceneName)
                 } else {
                     dismissal = nil
                 }
@@ -294,7 +294,7 @@ public class NavigatorImpl: Navigator, EventDelegate {
             } else {
                 if let oldPresentedName = old.presented?.sceneName,
                    oldPresentedName != new?.presented?.sceneName {
-                    dismissal = Dismissal(old.sceneName)
+                    dismissal = DismissStep(old.sceneName)
                 } else {
                     dismissal = nil
                 }
@@ -477,10 +477,10 @@ public class NavigatorImpl: Navigator, EventDelegate {
         sceneToName[ObjectIdentifier(scene)]
     }
 
-    private func execute(_ plan: [BuildStep],
+    private func execute(_ plan: [MaterializationStep],
                          _ completion: (() -> Void)? = nil) {
         if let step = plan.first {
-            step.execute(self, { [weak self] in
+            step.materialize(self, { [weak self] in
                 // TODO: This could blow the stack.
                 // dropFirst() is efficient, but returns an ArraySlice.
                 self?.execute(plan.dropFirst(), completion)
@@ -491,10 +491,10 @@ public class NavigatorImpl: Navigator, EventDelegate {
     }
 
     // TODO: Can we reduce the duplication?
-    private func execute(_ plan: ArraySlice<BuildStep>,
+    private func execute(_ plan: ArraySlice<MaterializationStep>,
                          _ completion: (() -> Void)? = nil) {
         if let step = plan.first {
-            step.execute(self, { [weak self] in
+            step.materialize(self, { [weak self] in
                 // TODO: This could blow the stack.
                 // dropFirst() is efficient, but returns an ArraySlice.
                 self?.execute(plan.dropFirst(), completion)
@@ -505,24 +505,22 @@ public class NavigatorImpl: Navigator, EventDelegate {
     }
 }
 
-//func outerZip()
 
-// TODO: Should conform to Hashable.
-protocol BuildStep {
+protocol MaterializationStep {
 
     // TODO: Don't pass the whole Navigator
-    func execute(_ navigator: NavigatorImpl, _ completion: (() -> Void)?)
+    func materialize(_ navigator: NavigatorImpl, _ completion: (() -> Void)?)
 }
 
-extension BuildStep where Self: Equatable {
+extension MaterializationStep where Self: Equatable {
 
-    func isEqual(to other: BuildStep) -> Bool {
+    func isEqual(to other: MaterializationStep) -> Bool {
         if let o = other as? Self { return self == o }
         return false
     }
 }
 
-struct PresentationStep: BuildStep, Hashable {
+struct PresentationStep: MaterializationStep, Hashable {
 
     var target: SceneModel
 
@@ -530,7 +528,7 @@ struct PresentationStep: BuildStep, Hashable {
         self.target = target
     }
 
-    func execute(_ navigator: NavigatorImpl, _ completion: (() -> Void)?) {
+    func materialize(_ navigator: NavigatorImpl, _ completion: (() -> Void)?) {
         // TODO: Handle failure to acquire scene elsewhere
         let targetScene = navigator.acquireScene(for: target.sceneName)!
         let presentedScene = navigator.acquireScene(for: target.presented!.sceneName)!
@@ -539,7 +537,7 @@ struct PresentationStep: BuildStep, Hashable {
     }
 }
 
-struct EmbedStep: BuildStep, Hashable {
+struct EmbedStep: MaterializationStep, Hashable {
 
     var target: SceneModel
 
@@ -547,7 +545,7 @@ struct EmbedStep: BuildStep, Hashable {
         self.target = target
     }
 
-    func execute(_ navigator: NavigatorImpl, _ completion: (() -> Void)?) {
+    func materialize(_ navigator: NavigatorImpl, _ completion: (() -> Void)?) {
         // TODO: Handle failure elsewhere
         let targetScene = navigator.acquireScene(for: target.sceneName)!
         let childScenes = target.children.compactMap { navigator.acquireScene(for: $0.sceneName) }
@@ -557,7 +555,7 @@ struct EmbedStep: BuildStep, Hashable {
     }
 }
 
-struct Dismissal: BuildStep, Hashable {
+struct DismissStep: MaterializationStep, Hashable {
 
     /// The name of the target scene.
     var target: String
@@ -566,7 +564,7 @@ struct Dismissal: BuildStep, Hashable {
         self.target = target
     }
 
-    func execute(_ navigator: NavigatorImpl, _ completion: (() -> Void)?) {
+    func materialize(_ navigator: NavigatorImpl, _ completion: (() -> Void)?) {
         // TODO: Handle failure elsewhere
         // TODO: Don't acquire because we don't want to instantiate if it doesn't exist.
         let targetScene = navigator.acquireScene(for: target)!

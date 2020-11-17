@@ -92,7 +92,7 @@ class NavigatorTests: XCTestCase {
     func testPlanSimpleDismissal() {
         let old = SceneModel(sceneName: "a", presented: SceneModel(sceneName: "b"))
         let new = SceneModel(sceneName: "a")
-        XCTAssertEqual(NavigatorImpl.plan(old, new), [Dismissal("a")])
+        XCTAssertEqual(NavigatorImpl.plan(old, new), [DismissStep("a")])
     }
 
     func testPlanNestedDismissal() {
@@ -100,7 +100,7 @@ class NavigatorTests: XCTestCase {
                              presented: SceneModel(sceneName: "b",
                                                    presented: SceneModel(sceneName: "c")))
         let new = SceneModel(sceneName: "a")
-        XCTAssertEqual(NavigatorImpl.plan(old, new), [Dismissal("a")])
+        XCTAssertEqual(NavigatorImpl.plan(old, new), [DismissStep("a")])
     }
 
     func testPlanDismiss1Deep() {
@@ -109,7 +109,7 @@ class NavigatorTests: XCTestCase {
                                                    presented: SceneModel(sceneName: "c")))
         let new = SceneModel(sceneName: "a",
                              presented: SceneModel(sceneName: "b"))
-        XCTAssertEqual(NavigatorImpl.plan(old, new), [Dismissal("b")])
+        XCTAssertEqual(NavigatorImpl.plan(old, new), [DismissStep("b")])
     }
 
     func testPlanReplacement() {
@@ -117,7 +117,7 @@ class NavigatorTests: XCTestCase {
                              presented: SceneModel(sceneName: "b"))
         let new = SceneModel(sceneName: "a",
                              presented: SceneModel(sceneName: "c"))
-        XCTAssertEqual(NavigatorImpl.plan(old, new), [Dismissal("a"),
+        XCTAssertEqual(NavigatorImpl.plan(old, new), [DismissStep("a"),
                                                       PresentationStep(SceneModel(sceneName: "a",
                                                                                   presented: SceneModel(sceneName: "c")))])
     }
@@ -129,7 +129,7 @@ class NavigatorTests: XCTestCase {
         let new = SceneModel(sceneName: "a",
                              children: [SceneModel(sceneName: "b",
                                                    presented: SceneModel(sceneName: "d"))])
-        XCTAssertEqual(NavigatorImpl.plan(old, new), [Dismissal("b"),
+        XCTAssertEqual(NavigatorImpl.plan(old, new), [DismissStep("b"),
                                                       PresentationStep(SceneModel(sceneName: "b",
                                                                                   presented: SceneModel(sceneName: "d")))])
     }
@@ -143,7 +143,7 @@ class NavigatorTests: XCTestCase {
                              children: [SceneModel(sceneName: "red"),
                                         SceneModel(sceneName: "orange",
                                                    presented: SceneModel(sceneName: "green"))])
-        XCTAssertEqual(NavigatorImpl.plan(old, new), [Dismissal("red"),
+        XCTAssertEqual(NavigatorImpl.plan(old, new), [DismissStep("red"),
                                                       PresentationStep(SceneModel(sceneName: "orange",
                                                                                   presented: SceneModel(sceneName: "green")))])
     }
