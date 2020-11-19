@@ -13,6 +13,8 @@ public protocol Scene: class {
 
     func configure(with customData: [AnyHashable: AnyHashable]?)
 
+//    func didDismissIfNecessary(didDismiss: Bool, customData: [String: AnyHashable])
+
     func embed(_ children: [Scene], options: [String: AnyHashable]?)
 }
 

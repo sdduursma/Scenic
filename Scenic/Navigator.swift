@@ -120,9 +120,8 @@ public class NavigatorImpl: Navigator, EventDelegate {
         if let retainer = rootSceneRetainer {
             window.rootViewController = retainer.scene.viewController
             // TODO: plan to return [BuildStep]
-            let plan = NavigatorImpl.plan(oldHierarchy, rootSceneModel) as! [MaterializationStep]
-            execute(plan, completion)
-//            buildViewControllerHierarchy(from: retainer, oldHierarchy: oldHierarchy, newHierarchy: rootSceneModel, options: options, completion)
+            let plan = NavigatorImpl.plan(oldHierarchy, rootSceneModel)
+            materialize(plan, completion)
         } else {
             completion?()
         }
@@ -155,117 +154,14 @@ public class NavigatorImpl: Navigator, EventDelegate {
         return retainer
     }
 
-    /// Must be called on the main thread.
-    private func buildViewControllerHierarchy(from retainer: SceneRetainer, oldHierarchy: SceneModel?, newHierarchy: SceneModel, options: [String: AnyHashable]? = nil, _ completion: (() -> Void)? = nil) {
-        let group = DispatchGroup()
-        _buildViewControllerHierarchy(from: retainer, oldHierarchy: oldHierarchy, newHierarchy: newHierarchy, group: group, options)
-        group.notify(queue: .main) {
-            completion?()
-        }
-    }
-
-    /// Must be called on the main thread.
-    private func _buildViewControllerHierarchy(from retainer: SceneRetainer, oldHierarchy: SceneModel?, newHierarchy: SceneModel, group: DispatchGroup, _ options: [String: AnyHashable]? = nil) {
-        group.enter()
-        let animated = (options?["animated"] as? Bool) == true
-        let scene = retainer.scene
-        scene.configure(with: retainer.customData)
-        scene.embed(retainer.children.map { $0.scene }, options: options)
-        // TODO: If these are not equal, that could mean that a child is not equal
-        if newHierarchy.presented != oldHierarchy?.presented {
-            if oldHierarchy?.presented?.sceneName != newHierarchy.presented?.sceneName {
-                if oldHierarchy?.presented == nil, let presented = retainer.presented {
-                    // Present new presented
-                    // TODO: Dismiss any currently presented VC?
-                    group.enter()
-                    // TODO: Improve logging
-                    let vc = "\(presented.scene.viewController.title ?? "\(presented.scene.viewController)")"
-                    NSLog("[Scenic] present view controller: " + vc)
-                    scene.viewController.present(presented.scene.viewController, animated: animated, completion: { [weak self] in
-                        // TODO: No force unwrap
-                        self?._buildViewControllerHierarchy(from: presented, oldHierarchy: nil, newHierarchy: newHierarchy.presented!, group: group, options)
-                        group.leave()
-                    })
-                } else if newHierarchy.presented == nil {
-                    // Dismiss old presented
-                    if let presentedVc = scene.viewController.presentedViewController,
-                       !presentedVc.isBeingDismissed {
-                        NSLog("[Scenic] dismiss view controller: " + presentedVc.toScenicDebugString())
-                        group.enter()
-                        scene.viewController.dismiss(animated: animated, completion: {
-                            group.leave()
-                        })
-                    } else {
-                        NSLog("[Scenic] unable to dismiss view controller")
-                    }
-                } else if let presented = retainer.presented {
-                    // Replace old presented with new presented
-                    if let oldPresentedVc = scene.viewController.presentedViewController,
-                       !oldPresentedVc.isBeingDismissed {
-                        // Dismiss any VC that's currently presented.
-                        group.enter()
-                        scene.viewController.dismiss(animated: animated, completion: {
-                            scene.viewController.present(presented.scene.viewController, animated: animated, completion: { [weak self] in
-                                // TODO: No force unwrap
-                                self?._buildViewControllerHierarchy(from: presented, oldHierarchy: nil, newHierarchy: newHierarchy.presented!, group: group)
-                                group.leave()
-                            })
-                        })
-                    } else {
-                        // TODO: Wait until old VC is dismissed?
-                        // Directly present the new VC.
-                        group.enter()
-                        scene.viewController.present(presented.scene.viewController, animated: animated, completion: { [weak self] in
-                            // TODO: No force unwrap
-                            self?._buildViewControllerHierarchy(from: presented, oldHierarchy: nil, newHierarchy: newHierarchy.presented!, group: group)
-                            group.leave()
-                        })
-                    }
-                }
-            }
-        }
-//        if let presented = scene.viewController.presentedViewController,
-//            presented.presentingViewController == retainer.scene.viewController
-//            && presented != retainer.presented?.scene.viewController {
-//            group.enter()
-//            scene.viewController.dismiss(animated: animated) {
-//                if let presented = retainer.presented {
-//                    group.enter()
-//                    scene.viewController.present(presented.scene.viewController, animated: animated) { [weak self] in
-//                        self?._buildViewControllerHierarchy(from: presented, group: group, options)
-//                        group.leave()
-//                    }
-//                }
-//                group.leave()
-//            }
-//        } else if let presented = retainer.presented {
-//            if presented.scene.viewController != scene.viewController.presentedViewController {
-//                group.enter()
-//                scene.viewController.present(presented.scene.viewController, animated: animated) { [weak self] in
-//                    self?._buildViewControllerHierarchy(from: presented, group: group, options)
-//                    group.leave()
-//                }
-//            } else {
-//                _buildViewControllerHierarchy(from: presented, group: group, options)
-//            }
-//        }
-        for child in retainer.children {
-            let oldChildSceneModel = oldHierarchy?.children.filter { $0.sceneName == child.sceneName }.first
-            // TODO: Don't force unwrap
-            let newChildSceneModel = newHierarchy.children.filter { $0.sceneName == child.sceneName }.first!
-            _buildViewControllerHierarchy(from: child, oldHierarchy: oldChildSceneModel, newHierarchy: newChildSceneModel, group: group, options)
-        }
-        group.leave()
-    }
-
-    static func plan(_ old: SceneModel?, _ new: SceneModel) -> [AnyHashable] {
-        var steps: [AnyHashable] = []
+    static func plan(_ old: SceneModel?, _ new: SceneModel) -> [MaterializationStep] {
+        var steps: [MaterializationStep] = []
         if let old = old {
             // TODO: inout?
-            steps.append(contentsOf: dismissals(old, new))
+            steps.append(contentsOf: dismissSteps(old, new))
         }
-        steps.append(contentsOf: embedSteps(old, new))
-//        steps.append(contentsOf: configurations(old, new))
+        embedSteps(old, new, &steps)
+        configurationSteps(old, new, &steps)
         if let p = presentationStep(old, new) {
             steps.append(p)
             steps.append(contentsOf: plan(nil, findPresented(new)!))
@@ -277,28 +173,28 @@ public class NavigatorImpl: Navigator, EventDelegate {
 
     // TODO: Should old be optional ?
     /// Compares `old` and `new`. ...
-    static func dismissals(_ old: SceneModel, _ new: SceneModel?) -> [AnyHashable] {
-        let steps: [AnyHashable]
+    static func dismissSteps(_ old: SceneModel, _ new: SceneModel?) -> [MaterializationStep] {
+        let steps: [MaterializationStep]
         if old == new {
             steps = []
         } else {
-            let dismissal: AnyHashable?
-            let childDismissals: [AnyHashable]
+            let dismissal: MaterializationStep?
+            let childDismissals: [MaterializationStep]
             if old.sceneName != new?.sceneName {
                 if old.presented != nil {
-                    dismissal = DismissStep(old.sceneName)
+                    dismissal = MaterializationStep.dismiss(old.sceneName)
                 } else {
                     dismissal = nil
                 }
-                childDismissals = dismissals(old.children, nil)
+                childDismissals = dismissSteps(old.children, nil)
             } else {
                 if let oldPresentedName = old.presented?.sceneName,
                    oldPresentedName != new?.presented?.sceneName {
-                    dismissal = DismissStep(old.sceneName)
+                    dismissal = MaterializationStep.dismiss(old.sceneName)
                 } else {
                     dismissal = nil
                 }
-                childDismissals = dismissals(old.children, new?.children)
+                childDismissals = dismissSteps(old.children, new?.children)
             }
 
             steps = (dismissal.map { [$0] } ?? []) + childDismissals
@@ -306,8 +202,8 @@ public class NavigatorImpl: Navigator, EventDelegate {
         return steps
     }
 
-    static func dismissals(_ oldChildren: [SceneModel], _ newChildren: [SceneModel]?) -> [AnyHashable] {
-        var childDismissals: [AnyHashable] = []
+    static func dismissSteps(_ oldChildren: [SceneModel], _ newChildren: [SceneModel]?) -> [MaterializationStep] {
+        var childDismissals: [MaterializationStep] = []
         for (i, oldChild) in oldChildren.enumerated() {
             let newChild: SceneModel?
             if i < newChildren?.count ?? 0 {
@@ -316,33 +212,34 @@ public class NavigatorImpl: Navigator, EventDelegate {
                 newChild = nil
             }
             // TODO: Will there be tail recursion?
-            childDismissals.append(contentsOf: dismissals(oldChild, newChild))
+            childDismissals.append(contentsOf: dismissSteps(oldChild, newChild))
         }
         return childDismissals
     }
 
-    private static func embedSteps(_ old: SceneModel?, _ new: SceneModel) -> [AnyHashable] {
-        var steps: [AnyHashable] = []
+    private static func embedSteps(_ old: SceneModel?, _ new: SceneModel) -> [MaterializationStep] {
+        var steps: [MaterializationStep] = []
         embedSteps(old, new, &steps)
         return steps
     }
 
     // TODO: Does `inout` really provide better performance than returning?
-    private static func embedSteps(_ old: SceneModel?, _ new: SceneModel, _ steps: inout [AnyHashable]) {
+    private static func embedSteps(_ old: SceneModel?, _ new: SceneModel, _ steps: inout [MaterializationStep]) {
         if old == new {
             return
         } else {
             if !new.children.isEmpty {
                 // Embed steps are performed depth-first.
+                // TODO: If old?.sceneName != new.sceneName, embedSteps should be called with old as nil
                 embedSteps(old?.children, new.children, &steps)
                 if (old?.sceneName != new.sceneName || old?.children.map(\.sceneName) != new.children.map(\.sceneName)) {
-                    steps.append(EmbedStep(new))
+                    steps.append(MaterializationStep.embed(new))
                 }
             }
         }
     }
 
-    private static func embedSteps(_ oldChildren: [SceneModel]?, _ newChildren: [SceneModel], _ steps: inout [AnyHashable]) {
+    private static func embedSteps(_ oldChildren: [SceneModel]?, _ newChildren: [SceneModel], _ steps: inout [MaterializationStep]) {
         for (i, newChild) in newChildren.enumerated() {
             let oldChild: SceneModel?
             if let oldChildren = oldChildren,
@@ -355,17 +252,29 @@ public class NavigatorImpl: Navigator, EventDelegate {
         }
     }
 
-    static func configurations(_ old: SceneModel?, _ new: SceneModel) -> [AnyHashable] {
-        return []
+    static func configurationSteps(_ old: SceneModel?, _ new: SceneModel, _ steps: inout [MaterializationStep]) {
+//        if old == new {
+//            return
+//        } else {
+//            if old?.sceneName == new.sceneName {
+//
+//            }
+//            if !new.children.isEmpty {
+//                configurationSteps(old?.children, new.children, &steps)
+//            }
+//            if old?.customData != new.customData {
+//                steps.append(ConfigureStep(target: new.sceneName., customData: new.customData))
+//            }
+//        }
     }
 
-    static func presentationStep(_ old: SceneModel?, _ new: SceneModel) -> AnyHashable? {
-        let step: AnyHashable?
+    static func presentationStep(_ old: SceneModel?, _ new: SceneModel) -> MaterializationStep? {
+        let step: MaterializationStep?
         if old == new {
             step = nil
         } else {
             if new.presented != nil && (old?.sceneName != new.sceneName || old?.presented?.sceneName != new.presented?.sceneName) {
-                step = PresentationStep(new)
+                step = MaterializationStep.present(new) //PresentationStep(new)
             } else {
                 step = presentationStep(old?.children, new.children)
             }
@@ -373,7 +282,7 @@ public class NavigatorImpl: Navigator, EventDelegate {
         return step
     }
 
-    static func presentationStep(_ oldChildren: [SceneModel]?, _ newChildren: [SceneModel]) -> AnyHashable? {
+    static func presentationStep(_ oldChildren: [SceneModel]?, _ newChildren: [SceneModel]) -> MaterializationStep? {
         for (i, newChild) in newChildren.enumerated() {
             let oldChild: SceneModel?
             // TODO Coalesce?
@@ -403,34 +312,6 @@ public class NavigatorImpl: Navigator, EventDelegate {
             }
         }
         return nil
-    }
-
-    /// Compares `old` and `new`. If the root scene of `old` or any child of the root presents a scene and it doesn't present that seen anymore in `new`, the presented scene is dismissed.
-    private func dismissIfNeeded(_ old: SceneModel, _ new: SceneModel, _ completion: (() -> Void)?) {
-        if old != new {
-            if old.presented != new.presented {
-                if old.presented?.sceneName != new.presented?.sceneName && old.presented != nil {
-                    dismiss(old, completion)
-                } else {
-                    completion?()
-                }
-            } else {
-                let group = DispatchGroup()
-                // TODO: Use a kind of outer zip
-                for (oc, nc) in zip(old.children, new.children) {
-                    group.enter()
-                    dismissIfNeeded(oc, nc, {
-                        group.leave()
-                    })
-                }
-                // TODO: Should completion even be optional here?
-                // TODO: Does `group` need to be retained by an outer scope or is it
-                // sufficient to capture it with the closure above.
-                completion.map { group.notify(queue: .main, execute: $0) }
-            }
-        } else {
-            completion?()
-        }
     }
 
     private func dismiss(_ sceneModel: SceneModel, _ completion: (() -> Void)? = nil) {
@@ -477,13 +358,13 @@ public class NavigatorImpl: Navigator, EventDelegate {
         sceneToName[ObjectIdentifier(scene)]
     }
 
-    private func execute(_ plan: [MaterializationStep],
+    private func materialize(_ plan: [MaterializationStep],
                          _ completion: (() -> Void)? = nil) {
         if let step = plan.first {
             step.materialize(self, { [weak self] in
                 // TODO: This could blow the stack.
                 // dropFirst() is efficient, but returns an ArraySlice.
-                self?.execute(plan.dropFirst(), completion)
+                self?.materialize(plan.dropFirst(), completion)
             })
         } else {
             completion?()
@@ -491,13 +372,13 @@ public class NavigatorImpl: Navigator, EventDelegate {
     }
 
     // TODO: Can we reduce the duplication?
-    private func execute(_ plan: ArraySlice<MaterializationStep>,
+    private func materialize(_ plan: ArraySlice<MaterializationStep>,
                          _ completion: (() -> Void)? = nil) {
         if let step = plan.first {
             step.materialize(self, { [weak self] in
                 // TODO: This could blow the stack.
                 // dropFirst() is efficient, but returns an ArraySlice.
-                self?.execute(plan.dropFirst(), completion)
+                self?.materialize(plan.dropFirst(), completion)
             })
         } else {
             completion?()
@@ -505,66 +386,26 @@ public class NavigatorImpl: Navigator, EventDelegate {
     }
 }
 
-
-protocol MaterializationStep {
-
-    // TODO: Don't pass the whole Navigator
-    func materialize(_ navigator: NavigatorImpl, _ completion: (() -> Void)?)
-}
-
-extension MaterializationStep where Self: Equatable {
-
-    func isEqual(to other: MaterializationStep) -> Bool {
-        if let o = other as? Self { return self == o }
-        return false
-    }
-}
-
-struct PresentationStep: MaterializationStep, Hashable {
-
-    var target: SceneModel
-
-    init(_ target: SceneModel) {
-        self.target = target
-    }
+enum MaterializationStep: Hashable {
+    case dismiss(_ target: String)
+    case embed(_ target: SceneModel)
+    case configure(_ target: String, _ customData: [String: AnyHashable])
+    case present(_ target: SceneModel)
 
     func materialize(_ navigator: NavigatorImpl, _ completion: (() -> Void)?) {
-        // TODO: Handle failure to acquire scene elsewhere
-        let targetScene = navigator.acquireScene(for: target.sceneName)!
-        let presentedScene = navigator.acquireScene(for: target.presented!.sceneName)!
-        // TODO: animated option
-        targetScene.viewController.present(presentedScene.viewController, animated: true, completion: completion)
-    }
-}
-
-struct EmbedStep: MaterializationStep, Hashable {
-
-    var target: SceneModel
-
-    init(_ target: SceneModel) {
-        self.target = target
+        switch self {
+        case .dismiss(let target):
+            MaterializationStep.dismiss(navigator, target, completion)
+        case .embed(let target):
+            MaterializationStep.embed(navigator, target, completion)
+        case .configure(let target, let customData):
+            MaterializationStep.configure(navigator, target, customData, completion)
+        case .present(let target):
+            MaterializationStep.present(navigator, target, completion)
+        }
     }
 
-    func materialize(_ navigator: NavigatorImpl, _ completion: (() -> Void)?) {
-        // TODO: Handle failure elsewhere
-        let targetScene = navigator.acquireScene(for: target.sceneName)!
-        let childScenes = target.children.compactMap { navigator.acquireScene(for: $0.sceneName) }
-        // TODO: Options
-        targetScene.embed(childScenes, options: [:])
-        completion?()
-    }
-}
-
-struct DismissStep: MaterializationStep, Hashable {
-
-    /// The name of the target scene.
-    var target: String
-
-    init(_ target: String) {
-        self.target = target
-    }
-
-    func materialize(_ navigator: NavigatorImpl, _ completion: (() -> Void)?) {
+    static func dismiss(_ navigator: NavigatorImpl, _ target: String, _ completion: (() -> Void)?) {
         // TODO: Handle failure elsewhere
         // TODO: Don't acquire because we don't want to instantiate if it doesn't exist.
         let targetScene = navigator.acquireScene(for: target)!
@@ -572,6 +413,30 @@ struct DismissStep: MaterializationStep, Hashable {
             // TODO: animated option
             targetScene.viewController.dismiss(animated: true, completion: completion)
         }
+    }
+
+    static func embed(_ navigator: NavigatorImpl, _ target: SceneModel, _ completion: (() -> Void)?) {
+        // TODO: Handle failure elsewhere
+        let targetScene = navigator.acquireScene(for: target.sceneName)!
+        let childScenes = target.children.compactMap { navigator.acquireScene(for: $0.sceneName) }
+        // TODO: Options
+        targetScene.embed(childScenes, options: [:])
+        completion?()
+    }
+
+    static func configure(_ navigator: NavigatorImpl, _ target: String, _ customData: [String: AnyHashable], _ completion: (() -> Void)?) {
+        // TODO: Handle failure elsewhere
+        // TODO: Fetch, don't instantiate
+        let scene = navigator.acquireScene(for: target)!
+        scene.configure(with: customData)
+    }
+
+    static func present(_ navigator: NavigatorImpl, _ target: SceneModel, _ completion: (() -> Void)?) {
+        // TODO: Handle failure to acquire scene elsewhere
+        let targetScene = navigator.acquireScene(for: target.sceneName)!
+        let presentedScene = navigator.acquireScene(for: target.presented!.sceneName)!
+        // TODO: animated option
+        targetScene.viewController.present(presentedScene.viewController, animated: true, completion: completion)
     }
 }
 
