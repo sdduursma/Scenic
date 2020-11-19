@@ -15,12 +15,16 @@ class NavigatorTests: XCTestCase {
         let sceneFactory = MockSceneFactory(scenes: scenes)
         let navigator = NavigatorImpl(window: window, sceneFactory: sceneFactory)
         let rootSceneModel1 = SceneModel(sceneName: "red",
-                                             children: [SceneModel(sceneName: "orange",
-                                                                       children: [SceneModel(sceneName: "blue")])],
-                                             customData: ["foo": "bar"])
+                                         children: [SceneModel(sceneName: "orange",
+                                                               children: [SceneModel(sceneName: "blue")])],
+                                         customData: ["foo": "bar"])
+        let exp = expectation(description: "")
 
         // when
-        navigator.set(rootSceneModel: rootSceneModel1)
+        navigator.set(rootSceneModel: rootSceneModel1, completion: {
+            exp.fulfill()
+        })
+        wait(for: [exp], timeout: 10)
 
         // then
         XCTAssertTrue(scenes["red"]!.children[0] as! MockScene === scenes["orange"]!)
@@ -119,7 +123,8 @@ class NavigatorTests: XCTestCase {
                              presented: SceneModel(sceneName: "c"))
         XCTAssertEqual(NavigatorImpl.plan(old, new), [.dismiss("a"),
                                                       .present(SceneModel(sceneName: "a",
-                                                                          presented: SceneModel(sceneName: "c")))])
+                                                                          presented: SceneModel(sceneName: "c"))),
+                                                      .configure("c", nil)])
     }
 
     func testPlanReplacePresentedByChild() {
@@ -131,7 +136,8 @@ class NavigatorTests: XCTestCase {
                                                    presented: SceneModel(sceneName: "d"))])
         XCTAssertEqual(NavigatorImpl.plan(old, new), [.dismiss("b"),
                                                       .present(SceneModel(sceneName: "b",
-                                                                          presented: SceneModel(sceneName: "d")))])
+                                                                          presented: SceneModel(sceneName: "d"))),
+                                                      .configure("d", nil)])
     }
 
     func testPlanDismissAndPresentFromSibling() {
@@ -145,17 +151,23 @@ class NavigatorTests: XCTestCase {
                                                    presented: SceneModel(sceneName: "green"))])
         XCTAssertEqual(NavigatorImpl.plan(old, new), [.dismiss("red"),
                                                       .present(SceneModel(sceneName: "orange",
-                                                                          presented: SceneModel(sceneName: "green")))])
+                                                                          presented: SceneModel(sceneName: "green"))),
+                                                      .configure("green", nil)])
     }
 
     func testPlanFirstTime() {
         let new = SceneModel(sceneName: "red",
                              children: [SceneModel(sceneName: "orange",
-                                                   children: [SceneModel(sceneName: "blue")])])
+                                                   children: [SceneModel(sceneName: "blue")])],
+                             customData: ["foo": "bar"])
         XCTAssertEqual(NavigatorImpl.plan(nil, new), [.embed(SceneModel(sceneName: "orange",
                                                                         children: [SceneModel(sceneName: "blue")])),
                                                       .embed(SceneModel(sceneName: "red",
                                                                         children: [SceneModel(sceneName: "orange",
-                                                                                              children: [SceneModel(sceneName: "blue")])]))])
+                                                                                              children: [SceneModel(sceneName: "blue")])],
+                                                                        customData: ["foo": "bar"])),
+                                                      .configure("blue", nil),
+                                                      .configure("orange", nil),
+                                                      .configure("red", ["foo": "bar"])])
     }
 }

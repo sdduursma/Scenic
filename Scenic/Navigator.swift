@@ -253,19 +253,28 @@ public class NavigatorImpl: Navigator, EventDelegate {
     }
 
     static func configurationSteps(_ old: SceneModel?, _ new: SceneModel, _ steps: inout [MaterializationStep]) {
-//        if old == new {
-//            return
-//        } else {
-//            if old?.sceneName == new.sceneName {
-//
-//            }
-//            if !new.children.isEmpty {
-//                configurationSteps(old?.children, new.children, &steps)
-//            }
-//            if old?.customData != new.customData {
-//                steps.append(ConfigureStep(target: new.sceneName., customData: new.customData))
-//            }
-//        }
+        if old == new {
+            return
+        } else {
+            if !new.children.isEmpty {
+                configurationSteps(old?.children, new.children, &steps)
+            }
+            if old?.sceneName != new.sceneName || old?.customData != new.customData {
+                steps.append(MaterializationStep.configure(new.sceneName, new.customData))
+            }
+        }
+    }
+
+    static func configurationSteps(_ oldChildren: [SceneModel]?, _ newChildren: [SceneModel], _ steps: inout [MaterializationStep]) {
+        for (i, newChild) in newChildren.enumerated() {
+            let oldChild: SceneModel?
+            if i < oldChildren?.count ?? 0 {
+                oldChild = oldChildren![i]
+            } else {
+                oldChild = nil
+            }
+            configurationSteps(oldChild, newChild, &steps)
+        }
     }
 
     static func presentationStep(_ old: SceneModel?, _ new: SceneModel) -> MaterializationStep? {
@@ -285,7 +294,6 @@ public class NavigatorImpl: Navigator, EventDelegate {
     static func presentationStep(_ oldChildren: [SceneModel]?, _ newChildren: [SceneModel]) -> MaterializationStep? {
         for (i, newChild) in newChildren.enumerated() {
             let oldChild: SceneModel?
-            // TODO Coalesce?
             if i < oldChildren?.count ?? 0 {
                 oldChild = oldChildren![i]
             } else {
@@ -389,7 +397,7 @@ public class NavigatorImpl: Navigator, EventDelegate {
 enum MaterializationStep: Hashable {
     case dismiss(_ target: String)
     case embed(_ target: SceneModel)
-    case configure(_ target: String, _ customData: [String: AnyHashable])
+    case configure(_ target: String, _ customData: [AnyHashable: AnyHashable]?)
     case present(_ target: SceneModel)
 
     func materialize(_ navigator: NavigatorImpl, _ completion: (() -> Void)?) {
@@ -424,11 +432,12 @@ enum MaterializationStep: Hashable {
         completion?()
     }
 
-    static func configure(_ navigator: NavigatorImpl, _ target: String, _ customData: [String: AnyHashable], _ completion: (() -> Void)?) {
+    static func configure(_ navigator: NavigatorImpl, _ target: String, _ customData: [AnyHashable: AnyHashable]?, _ completion: (() -> Void)?) {
         // TODO: Handle failure elsewhere
         // TODO: Fetch, don't instantiate
         let scene = navigator.acquireScene(for: target)!
         scene.configure(with: customData)
+        completion?()
     }
 
     static func present(_ navigator: NavigatorImpl, _ target: SceneModel, _ completion: (() -> Void)?) {
