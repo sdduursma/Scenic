@@ -86,7 +86,11 @@ public class TabBarScene: NSObject, Scene, UITabBarControllerDelegate {
 
     public static let didSelectIndexEventName = "TabBarScene.didSelectIndexEvent".scenicNamespacedName
 
-    private var selectedIndex = 0
+    private var selectedIndex = 0 {
+        didSet {
+            tabBarController.selectedIndex = selectedIndex
+        }
+    }
 
     private let tabBarController: UITabBarController
 

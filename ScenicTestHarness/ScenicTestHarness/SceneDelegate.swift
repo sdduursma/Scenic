@@ -32,10 +32,8 @@ class ColorViewController: UIViewController {
         view.backgroundColor = color
     }
 
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-
-        NSLog("!!! viewWillDisappear: \(colorName)")
+    override var description: String {
+        "ColorViewController: \(colorName)"
     }
 }
 

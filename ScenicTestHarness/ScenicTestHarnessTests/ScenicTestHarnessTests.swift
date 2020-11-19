@@ -71,7 +71,8 @@ class ScenicTestHarnessTests: XCTestCase {
         navigator.send(rootSceneModel: SceneModel(sceneName: "tabBar",
                                                   children: [SceneModel(sceneName: "red"),
                                                              SceneModel(sceneName: "orange",
-                                                                        presented: SceneModel(sceneName: "green"))]),
+                                                                        presented: SceneModel(sceneName: "green"))],
+                                                  customData: ["selectedIndex": 1]),
                        options: ["animated": true]) {
             exp2.fulfill()
         }
