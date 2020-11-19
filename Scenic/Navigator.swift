@@ -333,12 +333,14 @@ public class NavigatorImpl: Navigator, EventDelegate {
         scene.viewController.dismiss(animated: true, completion: completion)
     }
 
+    func getScene(for sceneName: String) -> Scene? {
+        rootSceneRetainer?.sceneRetainer(forSceneName: sceneName)?.scene
+    }
+
     // TODO: private
+    /// If a scene object corresponding to the given scene name exists, returns it. Otherwise instantiates a new scene object.
     func acquireScene(for sceneName: String) -> Scene? {
-        if let scene = rootSceneRetainer?.sceneRetainer(forSceneName: sceneName)?.scene {
-            return scene
-        }
-        return sceneFactory.makeScene(for: sceneName)
+        getScene(for: sceneName) ?? sceneFactory.makeScene(for: sceneName)
     }
 
     public func sendEvent(_ event: NavigationEvent) {
@@ -414,34 +416,32 @@ enum MaterializationStep: Hashable {
     }
 
     static func dismiss(_ navigator: NavigatorImpl, _ target: String, _ completion: (() -> Void)?) {
-        // TODO: Handle failure elsewhere
-        // TODO: Don't acquire because we don't want to instantiate if it doesn't exist.
-        let targetScene = navigator.acquireScene(for: target)!
-        if let presented = targetScene.viewController.presentedViewController, !presented.isBeingDismissed {
+        // TODO: Crash or warn if scene is nil?
+        let targetScene = navigator.getScene(for: target)
+        if let presented = targetScene?.viewController.presentedViewController, !presented.isBeingDismissed {
             // TODO: animated option
-            targetScene.viewController.dismiss(animated: true, completion: completion)
+            targetScene?.viewController.dismiss(animated: true, completion: completion)
         }
     }
 
     static func embed(_ navigator: NavigatorImpl, _ target: SceneModel, _ completion: (() -> Void)?) {
-        // TODO: Handle failure elsewhere
-        let targetScene = navigator.acquireScene(for: target.sceneName)!
+        // TODO: Crash or warn if scene is nil?
+        let targetScene = navigator.acquireScene(for: target.sceneName)
         let childScenes = target.children.compactMap { navigator.acquireScene(for: $0.sceneName) }
         // TODO: Options
-        targetScene.embed(childScenes, options: [:])
+        targetScene?.embed(childScenes, options: [:])
         completion?()
     }
 
     static func configure(_ navigator: NavigatorImpl, _ target: String, _ customData: [AnyHashable: AnyHashable]?, _ completion: (() -> Void)?) {
-        // TODO: Handle failure elsewhere
-        // TODO: Fetch, don't instantiate
-        let scene = navigator.acquireScene(for: target)!
-        scene.configure(with: customData)
+        // TODO: Crash or warn if scene is nil?
+        let scene = navigator.getScene(for: target)
+        scene?.configure(with: customData)
         completion?()
     }
 
     static func present(_ navigator: NavigatorImpl, _ target: SceneModel, _ completion: (() -> Void)?) {
-        // TODO: Handle failure to acquire scene elsewhere
+        // TODO: Crash or warn if scene is nil?
         let targetScene = navigator.acquireScene(for: target.sceneName)!
         let presentedScene = navigator.acquireScene(for: target.presented!.sceneName)!
         // TODO: animated option
