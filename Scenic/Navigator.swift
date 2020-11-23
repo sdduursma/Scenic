@@ -109,6 +109,10 @@ public class NavigatorImpl: Navigator, EventDelegate {
     }
 
     public func set(rootSceneModel: SceneModel, _ options: [String: AnyHashable]? = nil, completion: (() -> Void)? = nil) {
+        let completion = completion.map { handler in return { print("!!! complete: \(invocation)"); handler() }}
+        invocation += 1
+        print("!!! start: \(invocation)")
+
         guard rootSceneModel != hierarchy else {
             completion?()
             return
@@ -464,3 +468,5 @@ extension UIViewController: ScenicDebugStringConvertible {
 //func printS(_ message: String, _ args: Any?...) -> String {
 //    var message
 //}
+
+private var invocation = -1

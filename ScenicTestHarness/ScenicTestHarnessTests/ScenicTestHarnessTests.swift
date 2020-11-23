@@ -12,17 +12,19 @@ import Scenic
 
 class ScenicTestHarnessTests: XCTestCase {
 
-    private var navigator: Navigator {
+    private var navigator: NavigatorImpl {
         let sceneDelegate = UIApplication.shared.connectedScenes.first!.delegate! as! SceneDelegate
-        return sceneDelegate.navigator!
+        return sceneDelegate.navigator as! NavigatorImpl
     }
 
     override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-    }
+        try super.setUpWithError()
 
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+//        let exp = expectation(description: "")
+//        navigator.set(rootSceneModel: SceneModel(sceneName: "white"), ["animated": true], completion: {
+//            exp.fulfill()
+//        })
+//        wait(for: [exp], timeout: 20)
     }
 
     func testReplacePresented() throws {
@@ -33,7 +35,7 @@ class ScenicTestHarnessTests: XCTestCase {
                        options: ["animated": true]) {
             exp1.fulfill()
         }
-        wait(for: [exp1], timeout: 240)
+        wait(for: [exp1], timeout: 20)
 
         let exp2 = expectation(description: "")
         navigator.send(rootSceneModel: SceneModel(sceneName: "red",
@@ -42,7 +44,7 @@ class ScenicTestHarnessTests: XCTestCase {
                        options: ["animated": true]) {
             exp2.fulfill()
         }
-        wait(for: [exp2], timeout: 240)
+        wait(for: [exp2], timeout: 20)
     }
 
     func testSetSimpleSceneModel() throws {
@@ -50,7 +52,7 @@ class ScenicTestHarnessTests: XCTestCase {
         navigator.send(rootSceneModel: SceneModel(sceneName: "red"), options: nil) {
             exp.fulfill()
         }
-        wait(for: [exp], timeout: 10)
+        wait(for: [exp], timeout: 20)
     }
 
     func testPlanDismissAndPresentFromSibling() throws {
@@ -65,7 +67,7 @@ class ScenicTestHarnessTests: XCTestCase {
                        options: ["animated": true]) {
             exp1.fulfill()
         }
-        wait(for: [exp1], timeout: 10)
+        wait(for: [exp1], timeout: 20)
 
         let exp2 = expectation(description: "")
         navigator.send(rootSceneModel: SceneModel(sceneName: "tabBar",
@@ -76,6 +78,6 @@ class ScenicTestHarnessTests: XCTestCase {
                        options: ["animated": true]) {
             exp2.fulfill()
         }
-        wait(for: [exp2], timeout: 10)
+        wait(for: [exp2], timeout: 20)
     }
 }

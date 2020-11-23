@@ -80,8 +80,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let scene = (scene as? UIWindowScene) else { return }
 
         window = UIWindow(windowScene: scene)
+        window?.rootViewController = ColorViewController(colorName: "white")
         navigator = NavigatorImpl(window: window!, sceneFactory: TestSceneFactory())
-        navigator?.set(rootSceneModel: SceneModel(sceneName: "white"))
+//        navigator?.set(rootSceneModel: SceneModel(sceneName: "white"))
         window?.makeKeyAndVisible()
     }
 
