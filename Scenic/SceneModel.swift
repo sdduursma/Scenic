@@ -83,6 +83,7 @@ extension SceneModel {
             return closure(self)
         }
         return withChildren(children.map { $0.update(name, with: closure)})
+            .withPresented(presented?.update(name, with: closure))
     }
 }
 
