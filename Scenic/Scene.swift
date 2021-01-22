@@ -33,8 +33,14 @@ extension Scene {
 }
 
 public struct SceneEvent: Equatable {
+
     public var eventName: String
-    public var customData: [AnyHashable: AnyHashable]? = nil
+    public var customData: [AnyHashable: AnyHashable]?
+
+    public init(eventName: String, customData: [AnyHashable: AnyHashable]? = nil) {
+        self.eventName = eventName
+        self.customData = customData
+    }
 }
 
 public protocol EventDelegate: class {
