@@ -141,4 +141,19 @@ class SceneTests: XCTestCase {
         // then
         XCTAssertNotNil(tabBarController.delegate)
     }
+    
+    func testUniqueViewControllers() {
+        // given
+        let navigationController = UINavigationController()
+        let stackScene = StackScene(navigationController: navigationController)
+        let scene0 = SingleScene()
+        let scene1 = SingleScene()
+
+        // when
+        stackScene.configure(with: nil)
+        stackScene.embed([scene0, scene1, scene1, scene0], options: nil)
+
+        // then
+        XCTAssertEqual(navigationController.viewControllers, [scene0.viewController, scene1.viewController])
+    }
 }

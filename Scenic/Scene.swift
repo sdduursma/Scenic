@@ -72,7 +72,7 @@ public class StackScene: NSObject, Scene, UINavigationControllerDelegate {
 
     public func embed(_ children: [Scene], options: [String: AnyHashable]?) {
         self.children = children
-        let childViewControllers = children.map { $0.viewController }
+        let childViewControllers = children.map { $0.viewController }.uniqueViewControllers
         let animated = options?["animated".scenicNamespacedName] as? Bool ?? true
         navigationController.setViewControllers(childViewControllers, animated: animated)
     }
@@ -138,5 +138,21 @@ public class SingleScene: Scene {
 
     public init(viewController: UIViewController = UIViewController()) {
         self.viewController = viewController
+    }
+}
+
+// MARK: - Unique Array View Controllers
+
+private extension Array where Element: UIViewController {
+    var uniqueViewControllers: [Element] {
+        var uniqueViewControllers = [Element]()
+        
+        forEach { viewController in
+            if !uniqueViewControllers.contains(viewController) {
+                uniqueViewControllers.append(viewController)
+            }
+        }
+        
+        return uniqueViewControllers
     }
 }
