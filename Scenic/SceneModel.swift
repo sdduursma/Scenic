@@ -1,36 +1,54 @@
 import Foundation
 
-public struct SceneModel {
+fileprivate class Box<T> {
+
+    fileprivate let value: T
+
+    fileprivate init(_ value: T) {
+        self.value = value
+    }
+}
+
+extension Box: Equatable where T: Equatable {
+
+    static func == (lhs: Box<T>, rhs: Box<T>) -> Bool {
+        lhs.value == rhs.value
+    }
+}
+
+extension Box: Hashable where T: Hashable {
+
+    func hash(into hasher: inout Hasher) {
+        value.hash(into: &hasher)
+    }
+}
+
+public struct SceneModel: Hashable {
 
     public var sceneName: String
     public var children: [SceneModel]
+
+    private var _presented: Box<SceneModel>?
+
+    /// The SceneModel that is presented by this SceneModel.
+    public var presented: SceneModel? {
+        get {
+            _presented?.value
+        } set(newVal) {
+            _presented = newVal.map { Box($0) }
+        }
+    }
+
     public var customData: [AnyHashable: AnyHashable]?
 
     public init(sceneName: String,
                 children: [SceneModel] = [],
+                presented: SceneModel? = nil,
                 customData: [AnyHashable: AnyHashable]? = nil) {
         self.sceneName = sceneName
         self.children = children
+        self._presented = presented.map { Box($0) }
         self.customData = customData
-    }
-}
-
-extension SceneModel: Equatable {
-
-    public static func ==(left: SceneModel, right: SceneModel) -> Bool {
-        return left.sceneName == right.sceneName && left.children == right.children && isCustomDataEqual(left, right)
-    }
-
-    private static func isCustomDataEqual(_ left: SceneModel, _ right: SceneModel) -> Bool {
-        if let leftCustomData = left.customData,
-            let rightCustomData = right.customData,
-            leftCustomData == rightCustomData {
-            return true
-        } else if left.customData == nil && right.customData == nil {
-            return true
-        } else {
-            return false
-        }
     }
 }
 
@@ -48,6 +66,12 @@ extension SceneModel {
         return new
     }
 
+    public func withPresented(_ presented: SceneModel?) -> SceneModel {
+        var new = self
+        new.presented = presented
+        return new
+    }
+
     public func withCustomData(_ customData: [AnyHashable: AnyHashable]?) -> SceneModel {
         var new = self
         new.customData = customData
@@ -59,10 +83,19 @@ extension SceneModel {
             return closure(self)
         }
         return withChildren(children.map { $0.update(name, with: closure)})
+            .withPresented(presented?.update(name, with: closure))
     }
 }
 
 extension SceneModel {
+
+    public func applyTabBarDidSelectIndex(event: NavigationEvent) -> SceneModel {
+        if event.eventName == TabBarScene.didSelectIndexEventName,
+            let index = event.customData?["selectedIndex"] as? Int {
+            return selectIndex(index, ofTabBar: event.sceneName)
+        }
+        return self
+    }
 
     public func applyTabBarDidSelectIndex(to tabBarName: String, event: NavigationEvent) -> SceneModel {
         if event.eventName == TabBarScene.didSelectIndexEventName,
@@ -82,6 +115,14 @@ extension SceneModel {
 }
 
 extension SceneModel {
+
+    public func applyStackDidPop(event: NavigationEvent) -> SceneModel {
+        if event.eventName == StackScene.didPopEventName,
+            let toIndex = event.customData?["toIndex"] as? Int {
+            return popStack(event.sceneName, to: toIndex)
+        }
+        return self
+    }
 
     public func applyStackDidPop(to stackName: String, event: NavigationEvent) -> SceneModel {
         if event.eventName == StackScene.didPopEventName,

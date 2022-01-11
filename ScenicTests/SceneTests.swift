@@ -12,7 +12,8 @@ class SceneTests: XCTestCase {
         let scene1 = SingleScene()
 
         // when
-        stackScene.embed([scene0, scene1], customData: nil)
+        stackScene.configure(with: nil)
+        stackScene.embed([scene0, scene1], options: nil)
 
         // then
         XCTAssertEqual(navigationController.viewControllers, [scene0.viewController, scene1.viewController])
@@ -32,7 +33,8 @@ class SceneTests: XCTestCase {
         let stackScene = StackScene(navigationController: navigationController)
         let scene0 = SingleScene()
         let scene1 = SingleScene()
-        stackScene.embed([scene0, scene1], customData: nil)
+        stackScene.configure(with: nil)
+        stackScene.embed([scene0, scene1], options: nil)
         let eventDelegate = MockEventDelegate()
         stackScene.eventDelegate = eventDelegate
 
@@ -43,8 +45,8 @@ class SceneTests: XCTestCase {
                                         animated: true)
 
         // then
-        expect(eventDelegate.sentEvents).to(contain(NavigationEvent(eventName: StackScene.didPopEventName,
-                                                                    customData: ["toIndex": 0])))
+        expect(eventDelegate.sentEvents).to(contain(SceneEvent(eventName: StackScene.didPopEventName,
+                                                               customData: ["toIndex": 0])))
     }
 
     func testStackSceneNavigationControllerDidShowButDidNotPop() {
@@ -53,7 +55,8 @@ class SceneTests: XCTestCase {
         let stackScene = StackScene(navigationController: navigationController)
         let scene0 = SingleScene()
         let scene1 = SingleScene()
-        stackScene.embed([scene0, scene1], customData: nil)
+        stackScene.configure(with: nil)
+        stackScene.embed([scene0, scene1], options: nil)
         let eventDelegate = MockEventDelegate()
         stackScene.eventDelegate = eventDelegate
 
@@ -76,7 +79,8 @@ class SceneTests: XCTestCase {
         let scene1 = SingleScene()
 
         // when
-        tabBarScene.embed([scene0, scene1], customData: ["selectedIndex": 1])
+        tabBarScene.configure(with: ["selectedIndex": 1])
+        tabBarScene.embed([scene0, scene1], options: nil)
 
         // then
         guard let childViewControllers = tabBarController.viewControllers else {
@@ -95,8 +99,10 @@ class SceneTests: XCTestCase {
         let scene1 = SingleScene()
 
         // when
-        tabBarScene.embed([scene0, scene1], customData: ["selectedIndex": 1])
-        tabBarScene.embed([scene0, scene1], customData: nil)
+        tabBarScene.configure(with: ["selectedIndex": 1])
+        tabBarScene.embed([scene0, scene1], options: nil)
+        tabBarScene.configure(with: ["selectedIndex": 0])
+        tabBarScene.embed([scene0, scene1], options: nil)
 
         // then
         XCTAssertEqual(tabBarController.selectedIndex, 0)
@@ -111,15 +117,16 @@ class SceneTests: XCTestCase {
         let scene0 = SingleScene()
         let viewController1 = UIViewController()
         let scene1 = SingleScene(viewController: viewController1)
-        tabBarScene.embed([scene0, scene1], customData: nil)
+        tabBarScene.configure(with: ["selectedIndex": 0])
+        tabBarScene.embed([scene0, scene1], options: nil)
 
         // when
         let shouldSelect = tabBarScene.tabBarController(tabBarController, shouldSelect: viewController1)
 
         // then
         XCTAssertFalse(shouldSelect)
-        XCTAssertTrue(eventDelegate.sentEvents.contains(NavigationEvent(eventName: TabBarScene.didSelectIndexEventName,
-                                                                        customData: ["selectedIndex": 1])))
+        XCTAssertTrue(eventDelegate.sentEvents.contains(SceneEvent(eventName: TabBarScene.didSelectIndexEventName,
+                                                                   customData: ["selectedIndex": 1])))
     }
 
     func testTabBarSceneAssignsDelegate() {
@@ -133,5 +140,20 @@ class SceneTests: XCTestCase {
 
         // then
         XCTAssertNotNil(tabBarController.delegate)
+    }
+    
+    func testUniqueViewControllers() {
+        // given
+        let navigationController = UINavigationController()
+        let stackScene = StackScene(navigationController: navigationController)
+        let scene0 = SingleScene()
+        let scene1 = SingleScene()
+
+        // when
+        stackScene.configure(with: nil)
+        stackScene.embed([scene0, scene1, scene1, scene0], options: nil)
+
+        // then
+        XCTAssertEqual(navigationController.viewControllers, [scene0.viewController, scene1.viewController])
     }
 }
